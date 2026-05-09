@@ -124,8 +124,10 @@ class Resolver:
             )
         currency = (p.currency or acct.currency).upper()
 
-        cat_kind = p.kind if p.kind != "transfer" else "transfer"
-        cat_id, c_amb, c_conf = await self._resolve_category(p.category, cat_kind)
+        if p.kind == "transfer":
+            cat_id, c_amb, c_conf = None, [], 1.0
+        else:
+            cat_id, c_amb, c_conf = await self._resolve_category(p.category, p.kind)
         ambiguities += c_amb
         confidence *= c_conf
 
@@ -134,18 +136,36 @@ class Resolver:
         rate = await self.fx.get_rate(on, currency, base_currency)
         base_amount_minor = convert(amount_minor, currency, base_currency, rate=rate)
 
+        # Transfer target
+        transfer_to_id: int | None = None
+        if p.kind == "transfer":
+            if p.transfer_to_account:
+                transfer_to_id, t_amb, t_conf = await self._resolve_account(p.transfer_to_account)
+                ambiguities += t_amb
+                confidence *= t_conf
+            else:
+                ambiguities.append("transfer target not specified")
+                confidence *= 0.5
+
+        # Splits → resolve each leg's category in original currency
+        resolved_splits: list[dict] | None = None
+        if p.splits:
+            resolved_splits = []
+            for s in p.splits:
+                cat_id_s, amb_s, _ = await self._resolve_category(s.get("category"), "expense")
+                ambiguities += amb_s
+                resolved_splits.append({
+                    "category_id": cat_id_s,
+                    "amount_minor": to_minor(s["amount"], currency),
+                    "note": s.get("note"),
+                })
+
         return ResolvedTransaction(
             occurred_at=p.occurred_at or datetime.now(),
-            account_id=account_id,
-            category_id=cat_id,
-            kind=p.kind,
-            amount_minor=amount_minor,
-            currency=currency,
-            base_amount_minor=base_amount_minor,
-            fx_rate=rate,
-            base_currency=base_currency,
-            merchant=p.merchant,
-            note=p.note,
-            confidence=confidence,
-            ambiguities=ambiguities,
+            account_id=account_id, category_id=cat_id,
+            kind=p.kind, amount_minor=amount_minor, currency=currency,
+            base_amount_minor=base_amount_minor, fx_rate=rate, base_currency=base_currency,
+            merchant=p.merchant, note=p.note,
+            confidence=confidence, ambiguities=ambiguities,
+            splits=resolved_splits, transfer_to_account_id=transfer_to_id,
         )
