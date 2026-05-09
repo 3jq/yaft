@@ -9,6 +9,7 @@ import Ask from "@/pages/Ask";
 import Accounts from "@/pages/Accounts";
 import Categories from "@/pages/Categories";
 import Settings from "@/pages/Settings";
+import Recurring from "@/pages/Recurring";
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="budgets" element={<Budgets />} />
         <Route path="goals" element={<Goals />} />
         <Route path="ask" element={<Ask />} />
+        <Route path="recurring" element={<Recurring />} />
         <Route path="accounts" element={<Accounts />} />
         <Route path="categories" element={<Categories />} />
         <Route path="settings" element={<Settings />} />
