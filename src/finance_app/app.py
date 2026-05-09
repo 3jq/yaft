@@ -18,6 +18,7 @@ from finance_app.analysis.qa_sql_tool import ReadOnlySQL
 from finance_app.api.routes import accounts as acc_routes
 from finance_app.api.routes import ask as ask_routes
 from finance_app.api.routes import budgets as bud_routes
+from finance_app.api.routes import forecast as forecast_routes
 from finance_app.api.routes import categories as cat_routes
 from finance_app.api.routes import goals as goal_routes
 from finance_app.api.routes import recurring as rec_routes
@@ -26,7 +27,14 @@ from finance_app.api.routes import summary as sum_routes
 from finance_app.api.routes import transactions as tx_routes
 from finance_app.bot.auth import OwnerOnly
 from finance_app.bot.handlers.callbacks import handle_callback
-from finance_app.bot.handlers.commands import cmd_ask, cmd_balance, cmd_help, cmd_list, cmd_start
+from finance_app.bot.handlers.commands import (
+    cmd_ask,
+    cmd_balance,
+    cmd_forecast,
+    cmd_help,
+    cmd_list,
+    cmd_start,
+)
 from finance_app.bot.handlers.text import handle_text
 from finance_app.bot.handlers.voice import handle_voice
 from finance_app.config import get_settings
@@ -121,6 +129,7 @@ def make_app() -> FastAPI:
     fastapi_app.state.llm = llm
     fastapi_app.state.read_only_sql = read_only_sql
     fastapi_app.include_router(ask_routes.router)
+    fastapi_app.include_router(forecast_routes.router)
     fastapi_app.include_router(tx_routes.router)
     fastapi_app.include_router(acc_routes.router)
     fastapi_app.include_router(cat_routes.router)
@@ -166,6 +175,11 @@ def make_app() -> FastAPI:
     async def _ask(msg):
         async with Session() as s:
             await cmd_ask(msg, s, llm=llm, db_url=settings.db_url)
+
+    @dp.message(owner, Command("forecast"))
+    async def _forecast(msg):
+        async with Session() as s:
+            await cmd_forecast(msg, s, llm=llm)
 
     @dp.message(owner, F.text)
     async def _text(msg):

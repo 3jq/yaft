@@ -49,6 +49,27 @@ async def cmd_balance(msg: Message, session: AsyncSession) -> None:
         lines.append(f"• {a.name}: {format_amount(bal, ccy)}")
     await msg.answer("\n".join(lines) if lines else "No accounts.")
 
+async def cmd_forecast(msg: Message, session: AsyncSession, *, llm) -> None:
+    import datetime as dt
+    from finance_app.analysis.forecast import forecast
+    f = await forecast(session, today=dt.date.today())
+    prompt = (
+        "Narrate this finance forecast in 3 short sentences (no markdown):\n"
+        f"avg_daily_minor: {f['avg_daily_minor']}\n"
+        f"eom_net_minor: {f['eom_net_minor']}\n"
+        f"runway_months: {f['runway_months']}\n"
+        f"days_to_goal: {f['days_to_goal']}\n"
+        f"month: {f['month_label']}\n"
+        "Money is in integer cents. Convert to dollars in your reply."
+    )
+    resp = await llm._sdk.chat.completions.create(
+        model=llm._parse_model,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0,
+    )
+    await msg.answer(resp.choices[0].message.content or "(no narrative)")
+
+
 async def cmd_ask(msg: Message, session: AsyncSession, *, llm, db_url: str) -> None:
     text = (msg.text or "").removeprefix("/ask").strip()
     if not text:
