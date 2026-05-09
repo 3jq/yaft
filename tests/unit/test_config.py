@@ -1,5 +1,5 @@
-import os
 from finance_app.config import Settings
+
 
 def test_settings_loads_from_env(monkeypatch):
     monkeypatch.setenv("BOT_TOKEN", "abc")
