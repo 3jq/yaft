@@ -89,3 +89,82 @@ async def get_summary(
         by_category=by_cat,
         account_balances=balances,
     )
+
+
+@router.get("/networth_series")
+async def networth_series(
+    days: int = 30,
+    session: AsyncSession = Depends(_session),  # noqa: B008
+    _u=Depends(require_owner),  # noqa: B008
+):
+    """Return end-of-day net worth (base currency only) for the last N days."""
+    base_row = (
+        await session.execute(select(Setting).where(Setting.key == "base_currency"))
+    ).scalar_one_or_none()
+    base = base_row.value if base_row else "USD"
+
+    today = dt.date.today()
+    days = max(1, min(days, 365))
+    start_day = today - dt.timedelta(days=days - 1)
+
+    accs = (
+        await session.execute(
+            select(Account).where(Account.archived == 0, Account.currency == base)
+        )
+    ).scalars().all()
+    opening_total = sum(a.opening_balance_minor for a in accs)
+    acc_ids = [a.id for a in accs]
+
+    if not acc_ids:
+        return {
+            "base_currency": base,
+            "points": [
+                {
+                    "date": (start_day + dt.timedelta(days=i)).isoformat(),
+                    "value_minor": 0,
+                }
+                for i in range(days)
+            ],
+        }
+
+    rows = (
+        await session.execute(
+            select(Transaction)
+            .where(
+                Transaction.deleted_at.is_(None),
+                Transaction.account_id.in_(acc_ids),
+            )
+            .order_by(Transaction.occurred_at)
+        )
+    ).scalars().all()
+
+    end_of_day: dict[dt.date, int] = {}
+    running = opening_total
+    for t in rows:
+        d = t.occurred_at.date()
+        if t.kind in ("income", "transfer_in"):
+            running += t.base_amount_minor
+        elif t.kind in ("expense", "transfer_out"):
+            running -= t.base_amount_minor
+        end_of_day[d] = running
+
+    sorted_days = sorted(end_of_day.keys())
+
+    points: list[dict] = []
+    cur = opening_total
+    j = 0
+    for d in sorted_days:
+        if d < start_day:
+            cur = end_of_day[d]
+            j += 1
+        else:
+            break
+
+    for i in range(days):
+        d = start_day + dt.timedelta(days=i)
+        while j < len(sorted_days) and sorted_days[j] <= d:
+            cur = end_of_day[sorted_days[j]]
+            j += 1
+        points.append({"date": d.isoformat(), "value_minor": cur})
+
+    return {"base_currency": base, "points": points}

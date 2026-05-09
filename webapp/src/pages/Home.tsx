@@ -45,6 +45,7 @@ export default function Home() {
   const summary = useQuery({ queryKey: ["summary"], queryFn: api.getSummary });
   const txQuery = useQuery({ queryKey: ["transactions"], queryFn: () => api.listTransactions(false) });
   const goalsQuery = useQuery({ queryKey: ["goal-progress"], queryFn: api.goalProgress });
+  const nwSeries = useQuery({ queryKey: ["nw-series", 30], queryFn: () => api.getNetworthSeries(30) });
 
   if (summary.isLoading || txQuery.isLoading) {
     return <div className="p-5 label">Loading…</div>;
@@ -82,7 +83,37 @@ export default function Home() {
 
   // ── KPI strip ───────────────────────────────────────────────────────────────
   const spentMinor = s.total_expense_minor;
-  const savedMinor = s.total_income_minor - s.total_expense_minor;
+  const incomeMinor = s.total_income_minor;
+  const netMinor = incomeMinor - spentMinor;
+
+  // ── Net worth series (sparkbar + 7d delta) ──────────────────────────────────
+  const nwPoints = nwSeries.data?.points ?? [];
+  // Downsample 30 daily points → 8 buckets (last value of each bucket)
+  const sparkValues: number[] = (() => {
+    if (nwPoints.length === 0) return [];
+    const buckets = 8;
+    const step = nwPoints.length / buckets;
+    const out: number[] = [];
+    for (let i = 0; i < buckets; i++) {
+      const idx = Math.min(nwPoints.length - 1, Math.floor((i + 1) * step) - 1);
+      out.push(nwPoints[idx].value_minor);
+    }
+    return out;
+  })();
+  const sparkMin = sparkValues.length ? Math.min(...sparkValues) : 0;
+  const sparkNorm = sparkValues.map((v) => v - sparkMin); // pin floor at 0 so changes are visible
+
+  // 7-day delta: today vs 7 days ago
+  let deltaStr = "";
+  if (nwPoints.length >= 8) {
+    const todayVal = nwPoints[nwPoints.length - 1].value_minor;
+    const weekAgoVal = nwPoints[nwPoints.length - 8].value_minor;
+    const diff = todayVal - weekAgoVal;
+    const sign = diff >= 0 ? "+" : "−";
+    const pct = weekAgoVal !== 0 ? (diff / Math.abs(weekAgoVal)) * 100 : 0;
+    const pctStr = `${diff >= 0 ? "+" : "−"}${Math.abs(pct).toFixed(1)}%`;
+    deltaStr = `${sign}${formatBase(Math.abs(diff), base)} · ${pctStr} · 7d`;
+  }
 
   // ── Month label / current date ───────────────────────────────────────────────
   const now = new Date();
@@ -182,10 +213,9 @@ export default function Home() {
         {otherFootnotes.map((fn, i) => (
           <div key={i} className="num text-[11px] text-muted-foreground mt-1">{fn}</div>
         ))}
-        {/* TODO: Phase 4 real 7-day delta endpoint */}
-        <div className="num text-[14px] text-neutral-500 mt-3">+$342 · +2.7% · 7d</div>
+        <div className="num text-[14px] text-neutral-500 mt-3">{deltaStr || "—"}</div>
         <div className="mt-5 flex justify-center">
-          <Sparkbar values={[3, 5.5, 4.2, 6.8, 5.8, 7.8, 7.2, 9.2]} />
+          {sparkNorm.length > 0 ? <Sparkbar values={sparkNorm} /> : <div className="h-7" />}
         </div>
       </div>
 
@@ -194,20 +224,21 @@ export default function Home() {
       {/* ── KPI strip ───────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-3 px-5 py-3.5 text-center divide-x divide-[#e5e5e5]">
         <div>
+          <div className="label">Income</div>
+          <div className="num text-[13px] font-medium mt-1">
+            +{formatBase(incomeMinor, base)}
+          </div>
+        </div>
+        <div>
           <div className="label">Spent</div>
           <div className="num text-[13px] font-medium mt-1">{formatBase(-spentMinor, base)}</div>
         </div>
         <div>
-          <div className="label">Saved</div>
+          <div className="label">Net</div>
           <div className="num text-[13px] font-medium mt-1">
-            {savedMinor >= 0 ? "+" : ""}
-            {formatBase(savedMinor, base)}
+            {netMinor >= 0 ? "+" : ""}
+            {formatBase(netMinor, base)}
           </div>
-        </div>
-        <div>
-          <div className="label">Goal</div>
-          {/* TODO: Phase 4 — real goal % from settings */}
-          <div className="num text-[13px] font-medium mt-1">32%</div>
         </div>
       </div>
 

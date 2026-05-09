@@ -151,6 +151,10 @@ export const api = {
 
   // summary
   getSummary: () => req<Summary>("/summary"),
+  getNetworthSeries: (days = 30) =>
+    req<{ base_currency: string; points: { date: string; value_minor: number }[] }>(
+      `/summary/networth_series?days=${days}`
+    ),
 
   // settings
   getSettings: () => req<Settings>("/settings"),
