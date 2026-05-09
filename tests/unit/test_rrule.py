@@ -2,8 +2,8 @@ import datetime as dt
 import json
 import pytest
 from sqlalchemy import select
-from finance_app.domain.rrule import materialize_due
-from finance_app.db.models import Account, Category, Currency, RecurringRule, Setting, Transaction
+from yaft.domain.rrule import materialize_due
+from yaft.db.models import Account, Category, Currency, RecurringRule, Setting, Transaction
 
 
 @pytest.fixture

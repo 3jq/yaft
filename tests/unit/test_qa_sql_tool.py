@@ -2,9 +2,9 @@ import datetime as dt
 
 import pytest
 
-from finance_app.analysis.qa_sql_tool import ReadOnlySQL
-from finance_app.db.models import Account, Currency, Transaction
-from finance_app.db.session import Base, make_engine, make_sessionmaker
+from yaft.analysis.qa_sql_tool import ReadOnlySQL
+from yaft.db.models import Account, Currency, Transaction
+from yaft.db.session import Base, make_engine, make_sessionmaker
 
 
 @pytest.fixture

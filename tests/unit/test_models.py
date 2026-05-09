@@ -3,8 +3,8 @@ from datetime import datetime
 import pytest
 from sqlalchemy import select
 
-from finance_app.db.models import Account, Category, Currency, Transaction
-from finance_app.db.session import Base, make_engine, make_sessionmaker
+from yaft.db.models import Account, Category, Currency, Transaction
+from yaft.db.session import Base, make_engine, make_sessionmaker
 
 
 @pytest.fixture

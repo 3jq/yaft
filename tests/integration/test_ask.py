@@ -6,7 +6,7 @@ from tests.integration.test_api_transactions import client, init_data_header  # 
 
 
 async def test_ask_endpoint_invokes_llm(client, monkeypatch):
-    from finance_app.api.routes import ask as ask_routes
+    from yaft.api.routes import ask as ask_routes
 
     fake_llm = MagicMock()
     fake_llm.ask_with_sql = AsyncMock(return_value="You spent $12.50.")

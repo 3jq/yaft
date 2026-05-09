@@ -1,7 +1,7 @@
 import datetime as dt
 
-from finance_app.bot.edit_card import build_keyboard, render_card
-from finance_app.db.models import Transaction
+from yaft.bot.edit_card import build_keyboard, render_card
+from yaft.db.models import Transaction
 
 
 def test_render_card_basic():

@@ -6,10 +6,10 @@ import pytest
 import respx
 from sqlalchemy import select
 
-from finance_app.bot.handlers.voice import handle_voice
-from finance_app.bot.parser_text import ParsedTransaction
-from finance_app.db.models import Account, Category, Currency, Setting, Transaction
-from finance_app.pipeline.openrouter import OpenRouterClient
+from yaft.bot.handlers.voice import handle_voice
+from yaft.bot.parser_text import ParsedTransaction
+from yaft.db.models import Account, Category, Currency, Setting, Transaction
+from yaft.pipeline.openrouter import OpenRouterClient
 
 
 @pytest.fixture

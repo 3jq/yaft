@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from finance_app.db.session import Base, make_engine, make_sessionmaker
+from yaft.db.session import Base, make_engine, make_sessionmaker
 
 
 @pytest.fixture

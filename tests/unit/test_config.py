@@ -1,4 +1,4 @@
-from finance_app.config import Settings
+from yaft.config import Settings
 
 
 def test_settings_loads_from_env(monkeypatch):

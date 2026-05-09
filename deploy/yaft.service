@@ -1,0 +1,21 @@
+[Unit]
+Description=Yaft (bot + WebApp)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=yaft
+Group=yaft
+WorkingDirectory=/opt/yaft
+EnvironmentFile=/etc/yaft.env
+ExecStart=/opt/yaft/.venv/bin/python -m yaft.app
+Restart=always
+RestartSec=5
+LimitNOFILE=65536
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=yaft
+
+[Install]
+WantedBy=multi-user.target

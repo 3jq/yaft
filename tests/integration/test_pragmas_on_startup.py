@@ -1,8 +1,8 @@
 import pytest
 from sqlalchemy import text
 
-from finance_app.app import make_app
-from finance_app.config import get_settings
+from yaft.app import make_app
+from yaft.config import get_settings
 
 
 @pytest.fixture

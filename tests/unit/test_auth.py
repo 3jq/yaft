@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock
 
-from finance_app.bot.auth import OwnerOnly
+from yaft.bot.auth import OwnerOnly
 
 
 class FakeUser:

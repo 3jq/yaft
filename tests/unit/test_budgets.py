@@ -1,7 +1,7 @@
 import datetime as dt
 import pytest
-from finance_app.domain.budgets import month_window, spent_minor, period_key
-from finance_app.db.models import Account, Category, Currency, Setting, Transaction
+from yaft.domain.budgets import month_window, spent_minor, period_key
+from yaft.db.models import Account, Category, Currency, Setting, Transaction
 
 
 def test_month_window():
@@ -55,8 +55,8 @@ import json
 
 
 async def test_due_alerts_fires_each_threshold_once(seeded):
-    from finance_app.domain.budgets import due_alerts, mark_fired
-    from finance_app.db.models import Budget, AlertFired
+    from yaft.domain.budgets import due_alerts, mark_fired
+    from yaft.db.models import Budget, AlertFired
     seeded.add(Budget(id=1, category_id=1, amount_minor=2500, currency="USD",
                       alert_thresholds='[0.5,0.8,1.0]'))
     await seeded.commit()

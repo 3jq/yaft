@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Install/update the finance-app on a Debian/Ubuntu VPS.
+# Install/update the yaft on a Debian/Ubuntu VPS.
 # Idempotent — re-run after `git pull` to update.
 set -euo pipefail
 
-APP_DIR=/opt/finance-app
-DATA_DIR=/var/lib/finance
+APP_DIR=/opt/yaft
+DATA_DIR=/var/lib/yaft
 BACKUP_DIR="$DATA_DIR/backups"
-USER_=finance
+USER_=yaft
 
 id -u "$USER_" >/dev/null 2>&1 || \
   sudo useradd --system --create-home --home-dir "$DATA_DIR" "$USER_"
@@ -39,9 +39,9 @@ sudo -u "$USER_" "$APP_DIR/.venv/bin/alembic" \
 
 # Service
 sudo install -m 0644 \
-  "$APP_DIR/deploy/finance-app.service" \
-  /etc/systemd/system/finance-app.service
+  "$APP_DIR/deploy/yaft.service" \
+  /etc/systemd/system/yaft.service
 sudo systemctl daemon-reload
-sudo systemctl enable --now finance-app
+sudo systemctl enable --now yaft
 
-echo "Done. Tail logs with: journalctl -u finance-app -f"
+echo "Done. Tail logs with: journalctl -u yaft -f"

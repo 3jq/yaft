@@ -5,7 +5,7 @@ import time
 
 import pytest
 
-from finance_app.api.auth import InitDataError, verify_init_data
+from yaft.api.auth import InitDataError, verify_init_data
 
 BOT_TOKEN = "12345:fake"
 

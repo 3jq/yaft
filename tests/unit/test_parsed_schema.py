@@ -1,7 +1,7 @@
 import jsonschema
 import pytest
 
-from finance_app.bot.parser_text import parsed_transaction_json_schema
+from yaft.bot.parser_text import parsed_transaction_json_schema
 
 
 def _minimal():

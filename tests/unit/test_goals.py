@@ -1,7 +1,7 @@
 import datetime as dt
 import pytest
-from finance_app.domain.goals import progress_minor, projected_hit_date
-from finance_app.db.models import Account, Currency, Goal, GoalContribution, Setting, Transaction
+from yaft.domain.goals import progress_minor, projected_hit_date
+from yaft.db.models import Account, Currency, Goal, GoalContribution, Setting, Transaction
 
 
 @pytest.fixture

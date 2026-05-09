@@ -4,8 +4,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from finance_app.bot.parser_text import ParsedTransaction
-from finance_app.pipeline.openrouter import OpenRouterClient, ParseContext
+from yaft.bot.parser_text import ParsedTransaction
+from yaft.pipeline.openrouter import OpenRouterClient, ParseContext
 
 
 def _ok_parse_payload():

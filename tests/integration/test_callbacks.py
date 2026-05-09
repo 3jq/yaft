@@ -6,16 +6,16 @@ import pytest
 import respx
 from sqlalchemy import select
 
-from finance_app.bot.handlers.callbacks import handle_callback
-from finance_app.bot.parser_text import ParsedTransaction
-from finance_app.db.models import (
+from yaft.bot.handlers.callbacks import handle_callback
+from yaft.bot.parser_text import ParsedTransaction
+from yaft.db.models import (
     Account,
     Category,
     Currency,
     Setting,
     Transaction,
 )
-from finance_app.pipeline.openrouter import OpenRouterClient
+from yaft.pipeline.openrouter import OpenRouterClient
 
 
 @pytest.fixture

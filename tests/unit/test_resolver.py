@@ -4,10 +4,10 @@ import httpx
 import pytest
 import respx
 
-from finance_app.bot.parser_text import ParsedTransaction
-from finance_app.db.models import Account, Category, Currency, Setting
-from finance_app.domain.fx import FxService
-from finance_app.pipeline.resolver import Resolver
+from yaft.bot.parser_text import ParsedTransaction
+from yaft.db.models import Account, Category, Currency, Setting
+from yaft.domain.fx import FxService
+from yaft.pipeline.resolver import Resolver
 
 
 @pytest.fixture
@@ -76,9 +76,9 @@ async def test_resolve_creates_new_category_under_parent(seeded):
 async def test_resolve_transfer_sets_to_account(seeded):
     import datetime as dt
 
-    from finance_app.bot.parser_text import ParsedTransaction
-    from finance_app.domain.fx import FxService
-    from finance_app.pipeline.resolver import Resolver
+    from yaft.bot.parser_text import ParsedTransaction
+    from yaft.domain.fx import FxService
+    from yaft.pipeline.resolver import Resolver
     fx = FxService(seeded)
     r = Resolver(seeded, fx)
     p = ParsedTransaction(kind="transfer", amount=500.0, currency="USD",
@@ -93,9 +93,9 @@ async def test_resolve_transfer_sets_to_account(seeded):
 async def test_resolve_splits_resolves_each_category(seeded):
     import datetime as dt
 
-    from finance_app.bot.parser_text import ParsedTransaction
-    from finance_app.domain.fx import FxService
-    from finance_app.pipeline.resolver import Resolver
+    from yaft.bot.parser_text import ParsedTransaction
+    from yaft.domain.fx import FxService
+    from yaft.pipeline.resolver import Resolver
     fx = FxService(seeded)
     r = Resolver(seeded, fx)
     p = ParsedTransaction(kind="expense", amount=40.0, currency="USD",
@@ -115,9 +115,9 @@ async def test_resolve_splits_resolves_each_category(seeded):
 async def test_resolve_drops_splits_when_sum_mismatches_total(seeded):
     import datetime as dt
 
-    from finance_app.bot.parser_text import ParsedTransaction
-    from finance_app.domain.fx import FxService
-    from finance_app.pipeline.resolver import Resolver
+    from yaft.bot.parser_text import ParsedTransaction
+    from yaft.domain.fx import FxService
+    from yaft.pipeline.resolver import Resolver
     fx = FxService(seeded)
     r = Resolver(seeded, fx)
     # Total is 40, but splits sum to 80 (the LLM included the total as a split — bug seen live)

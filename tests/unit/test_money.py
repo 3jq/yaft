@@ -1,7 +1,7 @@
 from hypothesis import given
 from hypothesis import strategies as st
 
-from finance_app.domain.money import (
+from yaft.domain.money import (
     convert,
     exponent,
     format_amount,

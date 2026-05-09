@@ -2,8 +2,8 @@ import datetime as dt
 
 import pytest
 
-from finance_app.analysis.forecast import forecast
-from finance_app.db.models import Account, Currency, Goal, Setting, Transaction
+from yaft.analysis.forecast import forecast
+from yaft.db.models import Account, Currency, Goal, Setting, Transaction
 
 
 @pytest.fixture

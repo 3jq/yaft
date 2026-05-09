@@ -1,5 +1,5 @@
 [project]
-name = "finance-app"
+name = "yaft"
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = [
@@ -35,7 +35,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/finance_app"]
+packages = ["src/yaft"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -50,7 +50,7 @@ target-version = "py312"
 select = ["E", "F", "I", "B", "UP", "RUF"]
 
 [tool.ruff.lint.per-file-ignores]
-"src/finance_app/db/migrations/versions/*.py" = ["E501"]
-"src/finance_app/bot/edit_card.py" = ["RUF001"]
-"src/finance_app/bot/handlers/commands.py" = ["RUF001"]
+"src/yaft/db/migrations/versions/*.py" = ["E501"]
+"src/yaft/bot/edit_card.py" = ["RUF001"]
+"src/yaft/bot/handlers/commands.py" = ["RUF001"]
 "tests/unit/test_edit_card.py" = ["RUF001"]

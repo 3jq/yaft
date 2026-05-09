@@ -2,8 +2,8 @@ import datetime as dt
 
 import pytest
 
-from finance_app.analysis.weekly import gather
-from finance_app.db.models import Account, Category, Currency, Setting, Transaction
+from yaft.analysis.weekly import gather
+from yaft.db.models import Account, Category, Currency, Setting, Transaction
 
 
 @pytest.fixture

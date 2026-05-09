@@ -1,4 +1,4 @@
-# finance-tracker
+# yaft
 
 A personal AI-powered budgeting app I use day-to-day. Talk to a Telegram bot
 ("12.50 lunch #food @cash" or a 5-second voice note in any language), and an
@@ -71,7 +71,7 @@ either served by FastAPI at `/app/` or hosted separately.
 ## Repo layout
 
 ```
-src/finance_app/
+src/yaft/
   app.py                 FastAPI + bot bootstrap, lifespan, scheduler wiring
   config.py              Pydantic settings (env-driven)
   bot/                   aiogram handlers, parser, owner allowlist
@@ -95,7 +95,7 @@ python -m venv .venv && source .venv/bin/activate
 pip install -e '.[dev]'
 cp .env.example .env       # fill in BOT_TOKEN, OWNER_TG_ID, OPENROUTER_API_KEY
 alembic upgrade head
-python -m finance_app.app  # starts FastAPI on :8080 + bot polling
+python -m yaft.app  # starts FastAPI on :8080 + bot polling
 ```
 
 WebApp:
@@ -119,19 +119,19 @@ See [`docs/operations.md`](docs/operations.md) for the full runbook.
 TL;DR on a Debian/Ubuntu VPS:
 
 ```bash
-git clone <repo> ~/finance-app && cd ~/finance-app
+git clone <repo> ~/yaft && cd ~/yaft
 sudo bash deploy/install.sh                # creates user, venv, systemd unit
-sudoedit /etc/finance-app.env              # paste secrets
+sudoedit /etc/yaft.env              # paste secrets
 # Cloudflare Tunnel (or Tailscale Funnel as fallback)
-cloudflared tunnel create finance-app
-cloudflared tunnel route dns finance-app finance.<yourdomain>
-sudo systemctl enable --now cloudflared finance-app
+cloudflared tunnel create yaft
+cloudflared tunnel route dns yaft finance.<yourdomain>
+sudo systemctl enable --now cloudflared yaft
 ```
 
 ## Configuration
 
 All config is environment-driven (loaded from `.env` locally or
-`/etc/finance-app.env` in production):
+`/etc/yaft.env` in production):
 
 | Variable | Required | Description |
 |---|---|---|
@@ -140,10 +140,10 @@ All config is environment-driven (loaded from `.env` locally or
 | `OPENROUTER_API_KEY` | for AI features | OpenRouter API key. Without it, only regex-fast-path text records work. |
 | `BASE_CURRENCY` | no | Default `USD`. Used for net-worth aggregation. |
 | `TIMEZONE` | no | IANA timezone. Default `UTC`. |
-| `DB_URL` | no | SQLAlchemy URL. Default `sqlite+aiosqlite:///./finance.db`. |
+| `DB_URL` | no | SQLAlchemy URL. Default `sqlite+aiosqlite:///./yaft.db`. |
 | `PUBLIC_HTTPS_URL` | for WebApp | Public HTTPS URL the bot points the menu button at. |
-| `BACKUP_DIR` | no | Backup destination. Default `/var/lib/finance/backups`. |
-| `BACKUP_RCLONE_REMOTE` | no | rclone remote to copy backups to (e.g. `gdrive:finance-backups`). |
+| `BACKUP_DIR` | no | Backup destination. Default `/var/lib/yaft/backups`. |
+| `BACKUP_RCLONE_REMOTE` | no | rclone remote to copy backups to (e.g. `gdrive:yaft-backups`). |
 | `LOG_LEVEL` | no | `DEBUG`/`INFO`/`WARNING`. Default `INFO`. |
 
 ## License

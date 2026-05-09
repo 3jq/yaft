@@ -1,6 +1,6 @@
 from freezegun import freeze_time
 
-from finance_app.bot.parser_text import parse_text
+from yaft.bot.parser_text import parse_text
 
 
 @freeze_time("2026-05-09 12:00:00")

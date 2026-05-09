@@ -6,7 +6,7 @@
   the chosen path here; Tailscale Funnel works as a fallback if you don't
   want a domain).
 
-## /etc/finance-app.env
+## /etc/yaft.env
 Owned by root, mode 0640, group `finance`. Required keys:
 
 ```
@@ -15,29 +15,29 @@ OWNER_TG_ID=...
 OPENROUTER_API_KEY=...
 BASE_CURRENCY=USD
 TIMEZONE=Europe/Berlin
-DB_URL=sqlite+aiosqlite:////var/lib/finance/finance.db
-BACKUP_DIR=/var/lib/finance/backups
-BACKUP_RCLONE_REMOTE=gdrive:finance-backups
+DB_URL=sqlite+aiosqlite:////var/lib/yaft/yaft.db
+BACKUP_DIR=/var/lib/yaft/backups
+BACKUP_RCLONE_REMOTE=gdrive:yaft-backups
 PUBLIC_HTTPS_URL=https://<your-funnel-host>
 LOG_LEVEL=INFO
 ```
 
-After editing: `sudo systemctl restart finance-app`.
+After editing: `sudo systemctl restart yaft`.
 
 ## First-time deploy
 
 ```bash
-git clone <repo> finance-app && cd finance-app
+git clone <repo> yaft && cd yaft
 sudo bash deploy/install.sh
-sudoedit /etc/finance-app.env       # paste env values
-sudo systemctl restart finance-app
-journalctl -u finance-app -f
+sudoedit /etc/yaft.env       # paste env values
+sudo systemctl restart yaft
+journalctl -u yaft -f
 ```
 
 ## Update
 
 ```bash
-cd finance-app
+cd yaft
 git pull
 sudo bash deploy/install.sh        # idempotent
 ```
@@ -56,16 +56,16 @@ sudo apt install -y cloudflared
 cloudflared tunnel login
 
 # Create the tunnel
-cloudflared tunnel create finance-app
+cloudflared tunnel create yaft
 # Note the printed tunnel UUID and credentials path
 # (~/.cloudflared/<UUID>.json).
 
 # Route the hostname to the tunnel (creates the Cloudflare DNS CNAME for you)
-cloudflared tunnel route dns finance-app finance.<yourdomain>
+cloudflared tunnel route dns yaft finance.<yourdomain>
 
 # Config file: /etc/cloudflared/config.yml
 sudo tee /etc/cloudflared/config.yml <<'YAML'
-tunnel: finance-app
+tunnel: yaft
 credentials-file: /root/.cloudflared/<UUID>.json
 ingress:
   - hostname: finance.<yourdomain>
@@ -79,7 +79,7 @@ sudo systemctl enable --now cloudflared
 ```
 
 Set `PUBLIC_HTTPS_URL=https://finance.<yourdomain>` in
-`/etc/finance-app.env` and `sudo systemctl restart finance-app`.
+`/etc/yaft.env` and `sudo systemctl restart yaft`.
 
 Verify:
 ```bash
@@ -101,29 +101,29 @@ unit.
 
 ```bash
 rclone config
-rclone mkdir gdrive:finance-backups
+rclone mkdir gdrive:yaft-backups
 ```
 
-Then set `BACKUP_RCLONE_REMOTE=gdrive:finance-backups` in
-`/etc/finance-app.env`. Nightly backups will land both locally and in the
+Then set `BACKUP_RCLONE_REMOTE=gdrive:yaft-backups` in
+`/etc/yaft.env`. Nightly backups will land both locally and in the
 cloud.
 
 ## Restore from backup
 
 ```bash
-gzip -d -c /var/lib/finance/backups/finance-2026-05-09.sqlite.gz \
-  > /var/lib/finance/finance.restored.db
-sqlite3 /var/lib/finance/finance.restored.db "PRAGMA integrity_check;"
-sudo systemctl stop finance-app
-mv /var/lib/finance/finance.db /var/lib/finance/finance.db.bak
-mv /var/lib/finance/finance.restored.db /var/lib/finance/finance.db
-sudo systemctl start finance-app
+gzip -d -c /var/lib/yaft/backups/finance-2026-05-09.sqlite.gz \
+  > /var/lib/yaft/finance.restored.db
+sqlite3 /var/lib/yaft/finance.restored.db "PRAGMA integrity_check;"
+sudo systemctl stop yaft
+mv /var/lib/yaft/yaft.db /var/lib/yaft/yaft.db.bak
+mv /var/lib/yaft/finance.restored.db /var/lib/yaft/yaft.db
+sudo systemctl start yaft
 ```
 
 ## Logs
 
 ```bash
-journalctl -u finance-app -f
+journalctl -u yaft -f
 ```
 
 ## Healthz
@@ -136,4 +136,4 @@ curl -s http://127.0.0.1:8080/healthz
 ## Heartbeat
 The bot DMs you once a day at 12:00 local time:
 `❤️ Alive · N tx · M accounts · last backup: …`. If you don't see it
-within ~25h, something is wrong — check `journalctl -u finance-app`.
+within ~25h, something is wrong — check `journalctl -u yaft`.

@@ -433,7 +433,7 @@ export default function Settings() {
 
       {/* ── App info footer ──────────────────────────────────────────────────── */}
       <div className="px-5 py-4 text-[10px] text-neutral-400 num space-y-0.5">
-        <div>finance-app · v0.3.0 (phase 3)</div>
+        <div>yaft · v0.3.0 (phase 3)</div>
         <div>db: 12 tables · 24 KB</div>
         <div>healthz: ok · uptime 2h 14m</div>
       </div>

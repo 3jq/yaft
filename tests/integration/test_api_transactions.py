@@ -7,10 +7,10 @@ import time
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from finance_app.app import make_app
-from finance_app.config import get_settings
-from finance_app.db.models import Account, Category, Currency, Setting, Transaction
-from finance_app.db.session import Base
+from yaft.app import make_app
+from yaft.config import get_settings
+from yaft.db.models import Account, Category, Currency, Setting, Transaction
+from yaft.db.session import Base
 
 BOT_TOKEN = "1:fake"
 OWNER = 42

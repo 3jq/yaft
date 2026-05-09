@@ -5,9 +5,9 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from finance_app.db.models import Account, Budget, Category, Currency, Setting, Transaction
-from finance_app.db.session import Base, make_engine, make_sessionmaker
-from finance_app.scheduler import jobs
+from yaft.db.models import Account, Budget, Category, Currency, Setting, Transaction
+from yaft.db.session import Base, make_engine, make_sessionmaker
+from yaft.scheduler import jobs
 
 
 @pytest.fixture

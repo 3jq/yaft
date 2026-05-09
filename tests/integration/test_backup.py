@@ -2,7 +2,7 @@ import gzip
 import os
 import sqlite3
 
-from finance_app.scheduler.backup import backup_sqlite
+from yaft.scheduler.backup import backup_sqlite
 
 
 async def test_backup_produces_valid_gz(tmp_path):

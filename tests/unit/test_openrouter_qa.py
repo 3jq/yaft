@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from finance_app.pipeline.openrouter import OpenRouterClient
+from yaft.pipeline.openrouter import OpenRouterClient
 
 
 @pytest.fixture

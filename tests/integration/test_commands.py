@@ -3,8 +3,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from finance_app.bot.handlers.commands import cmd_balance, cmd_help, cmd_list, cmd_start
-from finance_app.db.models import Account, Category, Currency, Setting, Transaction
+from yaft.bot.handlers.commands import cmd_balance, cmd_help, cmd_list, cmd_start
+from yaft.db.models import Account, Category, Currency, Setting, Transaction
 
 
 @pytest.fixture

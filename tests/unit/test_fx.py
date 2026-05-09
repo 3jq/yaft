@@ -5,8 +5,8 @@ import pytest
 import respx
 from sqlalchemy import select
 
-from finance_app.db.models import FxRate
-from finance_app.domain.fx import FxService
+from yaft.db.models import FxRate
+from yaft.domain.fx import FxService
 
 
 @pytest.fixture

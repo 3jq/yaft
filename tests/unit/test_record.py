@@ -3,9 +3,9 @@ import datetime as dt
 import pytest
 from sqlalchemy import select
 
-from finance_app.db.models import Account, Category, Currency, Setting, Transaction
-from finance_app.pipeline.record import record
-from finance_app.pipeline.resolver import ResolvedTransaction
+from yaft.db.models import Account, Category, Currency, Setting, Transaction
+from yaft.pipeline.record import record
+from yaft.pipeline.resolver import ResolvedTransaction
 
 
 @pytest.fixture
