@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Filter, Plus, AlertTriangle } from "lucide-react";
+import { Search, Filter, AlertTriangle } from "lucide-react";
 import { api, Tx, Account, Category } from "@/lib/api";
 import { formatBase, formatAmount } from "@/lib/money";
 import { Hr } from "@/components/Section";
@@ -406,14 +406,8 @@ export default function Transactions() {
         );
       })}
 
-      {/* ── Floating + button ─────────────────────────────────────────────────── */}
-      <button
-        className="fixed right-5 bottom-20 w-12 h-12 rounded-full grid place-items-center text-[#fafafa] z-10"
-        style={{ background: "#0a0a0a", outline: "none" }}
-        aria-label="Add transaction"
-      >
-        <Plus size={18} strokeWidth={1.75} />
-      </button>
+      {/* Manual web-add is intentionally not in Phase 3 — primary input is the bot
+          (voice/text). Floating + removed; will return in a later phase if useful. */}
     </div>
   );
 }

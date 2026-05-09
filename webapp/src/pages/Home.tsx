@@ -111,7 +111,6 @@ export default function Home() {
   // ── Categories donut ────────────────────────────────────────────────────────
   const topCats = s.by_category.slice(0, 5);
   const donutSlices = topCats.map((c) => ({ value: c.expense_minor, label: c.name }));
-  const totalExpenseStr = formatBase(spentMinor, base);
   // donut center: drop cents to keep it short and readable inside the ring
   const donutCenterTop = formatBase(Math.round(spentMinor / 100) * 100, base).replace(/\.00$/, "");
 
