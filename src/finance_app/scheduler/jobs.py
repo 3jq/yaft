@@ -72,6 +72,26 @@ async def fetch_fx_rates(Session: async_sessionmaker) -> int:
     return n
 
 
+async def monthly_summary(
+    Session: async_sessionmaker, *, bot: Bot, owner_id: int, llm
+) -> None:
+    """Send a 5-bullet monthly summary narrative via LLM."""
+    import datetime as dt
+    from finance_app.analysis.monthly import aggregate_monthly, write_summary_narrative
+
+    async with Session() as s:
+        agg = await aggregate_monthly(s, today=dt.date.today())
+    narrative = await write_summary_narrative(llm, agg)
+    try:
+        await bot.send_message(
+            owner_id,
+            f"\U0001f4c5 Monthly summary {agg['month_label']}\n\n{narrative}",
+        )
+    except Exception as exc:
+        log.warning("scheduler.monthly_summary.send_failed", error=str(exc))
+    log.info("scheduler.monthly_summary", month=agg["month_label"])
+
+
 async def weekly_digest_skeleton(Session: async_sessionmaker, *, bot: Bot, owner_id: int) -> None:
     """Send a basic month-to-date digest. Phase 5 will replace with LLM narrative."""
     today = dt.date.today()

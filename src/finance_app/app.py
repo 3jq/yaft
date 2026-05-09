@@ -107,6 +107,12 @@ def make_app() -> FastAPI:
                 kwargs={"bot": bot, "owner_id": settings.owner_tg_id},
                 id="digest", replace_existing=True,
             )
+            scheduler.add_job(
+                scheduler_jobs.monthly_summary, "cron",
+                day=1, hour=9, args=[Session],
+                kwargs={"bot": bot, "owner_id": settings.owner_tg_id, "llm": llm},
+                id="monthly_summary", replace_existing=True,
+            )
             scheduler.start()
             app.state.scheduler = scheduler
             log.info("scheduler.started", jobs=len(scheduler.get_jobs()))
