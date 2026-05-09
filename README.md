@@ -36,3 +36,9 @@ To expose the WebApp publicly without buying a domain: `sudo tailscale funnel --
 - Budgets, savings goals, recurring rules live (domain + API + WebApp pages).
 - APScheduler runs in-process: hourly budget alerts (deduped per period/threshold), daily recurring materializer, daily FX prefetch, weekly digest skeleton.
 - Weekly digest is a placeholder; Phase 5 replaces it with an LLM narrative.
+
+## Phase 5 status
+- AI features live: `/ask`, `/forecast`, monthly summary (1st of month 09:00), weekly savings coach (Sun 09:00) — replaces the Phase 4 digest skeleton.
+- Q&A uses a read-only SQLite connection (`PRAGMA query_only=1`) plus regex allowlist so the model cannot mutate data.
+- WebApp Ask tab is functional; Home shows a Forecast strip (EOM net / runway / avg daily).
+- Forecast is deterministic (linear extrapolation on trailing-90-day daily net cashflow); LLM only narrates the numbers.
