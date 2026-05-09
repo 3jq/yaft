@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 
 from finance_app.db.models import Transaction
 from finance_app.domain.money import format_amount
@@ -94,14 +94,30 @@ def render_group_card(
     )
 
 
-def build_keyboard(tx_id: int) -> InlineKeyboardMarkup:
+def build_keyboard(tx_id: int, *, webapp_base: str | None = None) -> InlineKeyboardMarkup:
+    edit_btn = (
+        InlineKeyboardButton(
+            text="✏️ Edit",
+            web_app=WebAppInfo(url=f"{webapp_base}/transactions/{tx_id}"),
+        )
+        if webapp_base else
+        InlineKeyboardButton(text="✏️ Edit", callback_data=f"{CB_PREFIX}:edit:{tx_id}")
+    )
+    split_btn = (
+        InlineKeyboardButton(
+            text="🔀 Split",
+            web_app=WebAppInfo(url=f"{webapp_base}/transactions/{tx_id}"),
+        )
+        if webapp_base else
+        InlineKeyboardButton(text="🔀 Split", callback_data=f"{CB_PREFIX}:split:{tx_id}")
+    )
     return InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="✏️ Edit",   callback_data=f"{CB_PREFIX}:edit:{tx_id}"),
-            InlineKeyboardButton(text="🗑 Delete",  callback_data=f"{CB_PREFIX}:del:{tx_id}"),
+            edit_btn,
+            InlineKeyboardButton(text="🗑 Delete", callback_data=f"{CB_PREFIX}:del:{tx_id}"),
         ],
         [
-            InlineKeyboardButton(text="🔁 Retry",  callback_data=f"{CB_PREFIX}:retry:{tx_id}"),
-            InlineKeyboardButton(text="🔀 Split",  callback_data=f"{CB_PREFIX}:split:{tx_id}"),
+            InlineKeyboardButton(text="🔁 Retry", callback_data=f"{CB_PREFIX}:retry:{tx_id}"),
+            split_btn,
         ],
     ])

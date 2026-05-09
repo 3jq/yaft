@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 import httpx
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import Command
+from aiogram.types import MenuButtonWebApp, WebAppInfo
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from openai import AsyncOpenAI
@@ -53,6 +54,16 @@ def make_app() -> FastAPI:
     async def lifespan(app: FastAPI):
         log.info("startup", owner_tg_id=settings.owner_tg_id)
         app.state.poll_task = asyncio.create_task(dp.start_polling(bot))
+        if settings.public_https_url:
+            try:
+                await bot.set_chat_menu_button(
+                    menu_button=MenuButtonWebApp(
+                        text="Dashboard",
+                        web_app=WebAppInfo(url=settings.public_https_url + "/app/"),
+                    )
+                )
+            except Exception as e:
+                log.warning("set_chat_menu_button failed", error=str(e))
         yield
         log.info("shutdown")
         app.state.poll_task.cancel()

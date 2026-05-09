@@ -59,3 +59,19 @@ def test_keyboard_has_four_buttons():
     assert any(cd.endswith(":retry:10") for cd in flat)
     assert any(cd.endswith(":split:10") for cd in flat)
 
+
+def test_keyboard_edit_uses_webapp_when_base_given():
+    kb = build_keyboard(tx_id=10, webapp_base="https://x.test/app")
+    rows = kb.inline_keyboard
+    edit = rows[0][0]
+    assert edit.web_app is not None
+    assert "/transactions/10" in edit.web_app.url
+    split = rows[1][1]
+    assert split.web_app is not None
+    assert "/transactions/10" in split.web_app.url
+    # Delete and Retry stay as callback buttons
+    delete = rows[0][1]
+    retry = rows[1][0]
+    assert delete.callback_data == "tx:del:10"
+    assert retry.callback_data == "tx:retry:10"
+

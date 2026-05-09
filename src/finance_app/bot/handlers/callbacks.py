@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from finance_app.bot.edit_card import build_keyboard
 from finance_app.bot.handlers.voice import _build_context, _render_for
+from finance_app.config import get_settings
 from finance_app.db.models import Transaction
 from finance_app.domain.fx import FxService
 from finance_app.pipeline.openrouter import OpenRouterClient
@@ -93,7 +94,9 @@ async def handle_callback(
         )
         body = await _render_for(session, tx, base_currency=resolved.base_currency)
         body = "🔁 Re-parsed.\n\n" + body
-        await cb.message.answer(body, reply_markup=build_keyboard(tx.id))
+        _settings = get_settings()
+        webapp_base = (_settings.public_https_url + "/app") if _settings.public_https_url else None
+        await cb.message.answer(body, reply_markup=build_keyboard(tx.id, webapp_base=webapp_base))
         await cb.answer("Re-parsed")
         return
 

@@ -11,6 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from finance_app.bot.edit_card import build_keyboard, render_group_card
+from finance_app.config import get_settings
 from finance_app.db.models import Account, Category, Setting, Transaction
 from finance_app.domain.fx import FxService
 from finance_app.pipeline.openrouter import OpenRouterClient, ParseContext
@@ -111,4 +112,6 @@ async def handle_voice(
     if resolved.ambiguities:
         body += "\n" + "; ".join(resolved.ambiguities)
     body = f'📝 "{transcript}"\n\n' + body
-    await msg.answer(body, reply_markup=build_keyboard(tx.id))
+    _settings = get_settings()
+    webapp_base = (_settings.public_https_url + "/app") if _settings.public_https_url else None
+    await msg.answer(body, reply_markup=build_keyboard(tx.id, webapp_base=webapp_base))

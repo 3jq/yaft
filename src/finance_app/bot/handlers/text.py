@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from finance_app.bot.edit_card import build_keyboard
 from finance_app.bot.handlers.voice import _build_context, _render_for
 from finance_app.bot.parser_text import parse_text
+from finance_app.config import get_settings
 from finance_app.domain.fx import FxService
 from finance_app.pipeline.openrouter import OpenRouterClient
 from finance_app.pipeline.record import record
@@ -67,4 +68,6 @@ async def handle_text(
     body = await _render_for(session, tx, base_currency=resolved.base_currency)
     if resolved.ambiguities:
         body += "\n" + "; ".join(resolved.ambiguities)
-    await msg.answer(body, reply_markup=build_keyboard(tx.id))
+    _settings = get_settings()
+    webapp_base = (_settings.public_https_url + "/app") if _settings.public_https_url else None
+    await msg.answer(body, reply_markup=build_keyboard(tx.id, webapp_base=webapp_base))
