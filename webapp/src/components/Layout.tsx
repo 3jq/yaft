@@ -1,12 +1,12 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { Home as HomeIcon, List, Wallet, Target, Repeat } from "lucide-react";
+import { Home as HomeIcon, List, Wallet, Target, Sparkles } from "lucide-react";
 
 const tabs = [
   { to: "/", label: "Home", icon: HomeIcon, end: true },
   { to: "/transactions", label: "Tx", icon: List, end: false },
   { to: "/budgets", label: "Budgets", icon: Wallet, end: false },
   { to: "/goals", label: "Goals", icon: Target, end: false },
-  { to: "/recurring", label: "Recur", icon: Repeat, end: false },
+  { to: "/ask", label: "Ask", icon: Sparkles, end: false },
 ];
 
 export default function Layout() {

@@ -44,6 +44,7 @@ export default function Home() {
   const nav = useNavigate();
   const summary = useQuery({ queryKey: ["summary"], queryFn: api.getSummary });
   const txQuery = useQuery({ queryKey: ["transactions"], queryFn: () => api.listTransactions(false) });
+  const goalsQuery = useQuery({ queryKey: ["goal-progress"], queryFn: api.goalProgress });
 
   if (summary.isLoading || txQuery.isLoading) {
     return <div className="p-5 label">Loading…</div>;
@@ -362,65 +363,60 @@ export default function Home() {
       <Hr />
 
       {/* ── GOALS ───────────────────────────────────────────────────────────── */}
-      {/* TODO: Phase 4 — real goals from API; placeholder shown below */}
       <div className="px-5 py-5 mb-2">
         <div className="flex items-center justify-between mb-3">
           <div className="label">Goals</div>
           <a className="text-[11px] text-[#525252] border-b border-[#d4d4d4] pb-px cursor-pointer" onClick={() => nav("/goals")}>+ new</a>
         </div>
-        <div className="flex items-center gap-3">
-          {/* 56px monochrome ring — 32% progress */}
-          <div className="relative shrink-0" style={{ width: 56, height: 56, outline: "none" }}>
-            <svg width="56" height="56" viewBox="0 0 56 56" style={{ display: "block", transform: "rotate(-90deg)" }}>
-              <circle cx="28" cy="28" r="22" fill="none" stroke="#f0f0f1" strokeWidth="6" />
-              <circle
-                cx="28"
-                cy="28"
-                r="22"
-                fill="none"
-                stroke="#0a0a0a"
-                strokeWidth="6"
-                strokeLinecap="round"
-                strokeDasharray="44.27 138.23"
-              />
-            </svg>
-            <div className="absolute inset-0 grid place-items-center">
-              <span className="num text-[11px] font-semibold">32%</span>
-            </div>
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-baseline justify-between gap-2">
-              <span className="text-[13px] font-medium truncate">Emergency fund</span>
-              <span
-                className="text-[10px] font-medium font-mono px-1.5 py-0.5 rounded border tabular-nums bg-background text-foreground border-[#d4d4d4] flex items-center gap-1 shrink-0"
-              >
-                <svg
-                  style={{ width: 11, height: 11, strokeWidth: 1.75, stroke: "currentColor", fill: "none", strokeLinecap: "round", strokeLinejoin: "round" }}
-                  viewBox="0 0 24 24"
+        {(goalsQuery.data ?? []).length === 0 ? (
+          <div className="text-[12px] text-neutral-500">No active goals. <a className="border-b border-[#d4d4d4] pb-px cursor-pointer" onClick={() => nav("/goals")}>Create one →</a></div>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {(goalsQuery.data ?? []).slice(0, 3).map((g) => {
+              const pct = Math.max(0, Math.min(100, Math.round(g.fraction * 100)));
+              const C = 2 * Math.PI * 22; // circumference
+              const dash = (pct / 100) * C;
+              return (
+                <button
+                  key={g.id}
+                  onClick={() => nav("/goals")}
+                  className="flex items-center gap-3 text-left w-full"
                 >
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-                <span>on pace</span>
-              </span>
-            </div>
-            <div className="num text-[11.5px] text-neutral-500 mt-1">
-              $3,200<span className="text-neutral-400">&nbsp;/&nbsp;</span>$10,000&nbsp;USD
-            </div>
-            <div className="relative mt-2 h-[5px] bg-[#f0f0f1] rounded-full overflow-hidden">
-              <div
-                className="absolute inset-y-0 left-0 rounded-full"
-                style={{ background: "#0a0a0a", width: "32%" }}
-              />
-              <span className="absolute inset-y-0 w-px" style={{ left: "25%", background: "#fafafa" }} />
-              <span className="absolute inset-y-0 w-px" style={{ left: "50%", background: "#d4d4d4" }} />
-              <span className="absolute inset-y-0 w-px" style={{ left: "75%", background: "#d4d4d4" }} />
-            </div>
-            <div className="flex items-center justify-between text-[10px] text-neutral-500 mt-2 num">
-              <span>~$850/mo</span>
-              <span>eta&nbsp;2026-08-12</span>
-            </div>
+                  <div className="relative shrink-0" style={{ width: 56, height: 56, outline: "none" }}>
+                    <svg width="56" height="56" viewBox="0 0 56 56" style={{ display: "block", transform: "rotate(-90deg)" }}>
+                      <circle cx="28" cy="28" r="22" fill="none" stroke="#f0f0f1" strokeWidth="6" />
+                      <circle
+                        cx="28" cy="28" r="22" fill="none" stroke="#0a0a0a" strokeWidth="6"
+                        strokeLinecap="round" strokeDasharray={`${dash} ${C - dash}`}
+                      />
+                    </svg>
+                    <div className="absolute inset-0 grid place-items-center">
+                      <span className="num text-[11px] font-semibold">{pct}%</span>
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <span className="text-[13px] font-medium truncate">{g.name}</span>
+                    </div>
+                    <div className="num text-[11.5px] text-neutral-500 mt-1">
+                      {formatBase(g.progress_minor, g.currency)}<span className="text-neutral-400">&nbsp;/&nbsp;</span>{formatBase(g.target_minor, g.currency)}&nbsp;{g.currency}
+                    </div>
+                    <div className="relative mt-2 h-[5px] bg-[#f0f0f1] rounded-full overflow-hidden">
+                      <div className="absolute inset-y-0 left-0 rounded-full" style={{ background: "#0a0a0a", width: `${pct}%` }} />
+                      <span className="absolute inset-y-0 w-px" style={{ left: "25%", background: pct > 25 ? "#fafafa" : "#d4d4d4" }} />
+                      <span className="absolute inset-y-0 w-px" style={{ left: "50%", background: pct > 50 ? "#fafafa" : "#d4d4d4" }} />
+                      <span className="absolute inset-y-0 w-px" style={{ left: "75%", background: pct > 75 ? "#fafafa" : "#d4d4d4" }} />
+                    </div>
+                    <div className="flex items-center justify-between text-[10px] text-neutral-500 mt-2 num">
+                      <span>{g.target_date ? `target ${g.target_date}` : "no target date"}</span>
+                      <span>{g.projected_hit_date ? `eta ${g.projected_hit_date}` : "—"}</span>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

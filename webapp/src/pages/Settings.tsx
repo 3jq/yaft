@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, Download, Clock, Trash2 } from "lucide-react";
+import { ChevronLeft, Download, Clock, Trash2, Repeat, ChevronRight } from "lucide-react";
 import { api, Account } from "@/lib/api";
 import { Hr } from "@/components/Section";
 
@@ -376,6 +376,22 @@ export default function Settings() {
               className="text-[12.5px] bg-transparent border-0 outline-none w-full"
             />
           </FieldRow>
+        </div>
+      </div>
+
+      <Hr />
+
+      {/* ── Automation section ──────────────────────────────────────────────── */}
+      <div className="px-5 py-4">
+        <div className="label mb-3">Automation</div>
+        <div className="space-y-2">
+          <button onClick={() => nav("/recurring")} className={btnGhost + " w-full"}>
+            <span className="flex items-center gap-2">
+              <Repeat size={14} strokeWidth={1.75} />
+              Recurring rules
+            </span>
+            <ChevronRight size={14} strokeWidth={1.75} className="text-neutral-400" />
+          </button>
         </div>
       </div>
 
