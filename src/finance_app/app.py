@@ -12,6 +12,7 @@ from openai import AsyncOpenAI
 
 from finance_app.api.routes import accounts as acc_routes
 from finance_app.api.routes import categories as cat_routes
+from finance_app.api.routes import settings as set_routes
 from finance_app.api.routes import summary as sum_routes
 from finance_app.api.routes import transactions as tx_routes
 from finance_app.bot.auth import OwnerOnly
@@ -66,6 +67,7 @@ def make_app() -> FastAPI:
     fastapi_app.include_router(acc_routes.router)
     fastapi_app.include_router(cat_routes.router)
     fastapi_app.include_router(sum_routes.router)
+    fastapi_app.include_router(set_routes.router)
 
     @fastapi_app.get("/healthz")
     async def healthz():
