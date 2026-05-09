@@ -112,6 +112,8 @@ export default function Home() {
   const topCats = s.by_category.slice(0, 5);
   const donutSlices = topCats.map((c) => ({ value: c.expense_minor, label: c.name }));
   const totalExpenseStr = formatBase(spentMinor, base);
+  // donut center: drop cents to keep it short and readable inside the ring
+  const donutCenterTop = formatBase(Math.round(spentMinor / 100) * 100, base).replace(/\.00$/, "");
 
   // ── Today section ───────────────────────────────────────────────────────────
   const todayTx = allTx.filter((t) => t.occurred_at.slice(0, 10) === todayIso);
@@ -230,8 +232,8 @@ export default function Home() {
           <div className="relative" style={{ outline: "none" }}>
             <Donut
               slices={donutSlices.length > 0 ? donutSlices : [{ value: 1, label: "—" }]}
-              centerTop={totalExpenseStr}
-              centerBottom={`/ ${formatBase(120000, base)}`}
+              centerTop={donutCenterTop}
+              centerBottom={`/ ${formatBase(120000, base).replace(/\.00$/, "")}`}
               /* TODO: Phase 4 — real budget from settings; hardcoded $1,200 for now */
             />
           </div>
