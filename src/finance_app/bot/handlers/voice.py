@@ -10,12 +10,33 @@ from aiogram.types import Message
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from finance_app.bot.edit_card import build_keyboard, render_card
-from finance_app.db.models import Account, Category, Setting
+from finance_app.bot.edit_card import build_keyboard, render_group_card
+from finance_app.db.models import Account, Category, Setting, Transaction
 from finance_app.domain.fx import FxService
 from finance_app.pipeline.openrouter import OpenRouterClient, ParseContext
 from finance_app.pipeline.record import record
 from finance_app.pipeline.resolver import Resolver
+
+
+async def _render_for(session: AsyncSession, tx: Transaction, *, base_currency: str) -> str:
+    """Fetch all live legs sharing tx.group_id and render as one card."""
+    if tx.group_id:
+        legs = (await session.execute(
+            select(Transaction).where(
+                Transaction.group_id == tx.group_id,
+                Transaction.deleted_at.is_(None),
+            ).order_by(Transaction.id)
+        )).scalars().all()
+    else:
+        legs = [tx]
+    accounts = (await session.execute(select(Account))).scalars().all()
+    cats = (await session.execute(select(Category))).scalars().all()
+    return render_group_card(
+        list(legs),
+        account_by_id={a.id: a for a in accounts},
+        category_by_id={c.id: c for c in cats},
+        base_currency=base_currency,
+    )
 
 
 async def _build_context(session: AsyncSession) -> ParseContext:
@@ -86,19 +107,7 @@ async def handle_voice(
         source_ref=str(msg.message_id), raw_input=transcript,
     )
 
-    acc = await session.get(Account, tx.account_id)
-    cat_path = None
-    if tx.category_id:
-        c = await session.get(Category, tx.category_id)
-        if c.parent_id:
-            p = await session.get(Category, c.parent_id)
-            cat_path = f"{p.name} / {c.name}"
-        else:
-            cat_path = c.name
-    body = render_card(
-        tx, account_name=acc.name, category_path=cat_path,
-        base_currency=resolved.base_currency,
-    )
+    body = await _render_for(session, tx, base_currency=resolved.base_currency)
     if resolved.ambiguities:
         body += "\n" + "; ".join(resolved.ambiguities)
     body = f'📝 "{transcript}"\n\n' + body

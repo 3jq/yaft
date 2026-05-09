@@ -7,9 +7,9 @@ from aiogram.types import CallbackQuery
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from finance_app.bot.edit_card import build_keyboard, render_card
-from finance_app.bot.handlers.voice import _build_context
-from finance_app.db.models import Account, Category, Transaction
+from finance_app.bot.edit_card import build_keyboard
+from finance_app.bot.handlers.voice import _build_context, _render_for
+from finance_app.db.models import Transaction
 from finance_app.domain.fx import FxService
 from finance_app.pipeline.openrouter import OpenRouterClient
 from finance_app.pipeline.record import record
@@ -91,19 +91,7 @@ async def handle_callback(
             session, resolved, source=old.source or "voice",
             source_ref=old.source_ref, raw_input=old.raw_input,
         )
-        acc = await session.get(Account, tx.account_id)
-        cat_path = None
-        if tx.category_id:
-            c = await session.get(Category, tx.category_id)
-            if c.parent_id:
-                p = await session.get(Category, c.parent_id)
-                cat_path = f"{p.name} / {c.name}"
-            else:
-                cat_path = c.name
-        body = render_card(
-            tx, account_name=acc.name, category_path=cat_path,
-            base_currency=resolved.base_currency,
-        )
+        body = await _render_for(session, tx, base_currency=resolved.base_currency)
         body = "🔁 Re-parsed.\n\n" + body
         await cb.message.answer(body, reply_markup=build_keyboard(tx.id))
         await cb.answer("Re-parsed")

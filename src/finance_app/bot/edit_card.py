@@ -30,6 +30,70 @@ def render_card(
             f"{cat_line}{merchant} · {account_name} · {when}"
             f"{note}\n{warn}")
 
+def _category_path(cat_by_id: dict[int, object], cid: int | None) -> str | None:
+    if cid is None or cid not in cat_by_id:
+        return None
+    c = cat_by_id[cid]
+    if getattr(c, "parent_id", None) and c.parent_id in cat_by_id:
+        return f"{cat_by_id[c.parent_id].name} / {c.name}"
+    return c.name
+
+
+def render_group_card(
+    legs: list[Transaction],
+    *,
+    account_by_id: dict[int, object],
+    category_by_id: dict[int, object],
+    base_currency: str,
+) -> str:
+    """Render a card for a multi-leg group (split or transfer). One row per leg."""
+    if not legs:
+        return ""
+    primary = legs[0]
+    is_transfer = any(t.kind in ("transfer_out", "transfer_in") for t in legs)
+    is_split = (not is_transfer) and len(legs) > 1
+    when = primary.occurred_at.strftime("%Y-%m-%d %H:%M")
+    if is_transfer:
+        head = "✅ Transfer"
+        # Sum just the out leg amount (or any single leg — they're equal in original ccy)
+        out_leg = next((t for t in legs if t.kind == "transfer_out"), legs[0])
+        total = format_amount(out_leg.amount_minor, out_leg.currency)
+        base = ""
+        if out_leg.currency != base_currency:
+            base = f" (≈ {format_amount(out_leg.base_amount_minor, base_currency)})"
+        body = f"{head} · {total}{base} · {when}"
+        for t in sorted(legs, key=lambda x: x.kind):
+            sign = "−" if t.kind == "transfer_out" else "+"
+            acc = account_by_id.get(t.account_id)
+            acc_name = acc.name if acc else f"#{t.account_id}"
+            body += f"\n  {sign} {format_amount(t.amount_minor, t.currency)} · {acc_name}"
+        return body
+    if is_split:
+        total = sum(t.amount_minor for t in legs)
+        total_base = sum(t.base_amount_minor for t in legs)
+        head = "✅ Recorded (split)"
+        currency = primary.currency
+        main = f"−{format_amount(total, currency)}"
+        base = ""
+        if currency != base_currency:
+            base = f" (≈ −{format_amount(total_base, base_currency)})"
+        acc = account_by_id.get(primary.account_id)
+        acc_name = acc.name if acc else f"#{primary.account_id}"
+        body = f"{head} · {main}{base} · {acc_name} · {when}"
+        for t in legs:
+            cat = _category_path(category_by_id, t.category_id) or "(no category)"
+            note = f" — {t.note}" if t.note else ""
+            body += f"\n  · −{format_amount(t.amount_minor, t.currency)} · {cat}{note}"
+        return body
+    # Single-leg fallback: defer to render_card
+    cat_path = _category_path(category_by_id, primary.category_id)
+    acc = account_by_id.get(primary.account_id)
+    acc_name = acc.name if acc else f"#{primary.account_id}"
+    return render_card(
+        primary, account_name=acc_name, category_path=cat_path, base_currency=base_currency,
+    )
+
+
 def build_keyboard(tx_id: int) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
         [
