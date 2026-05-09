@@ -102,9 +102,9 @@ def make_app() -> FastAPI:
                 id="fx", replace_existing=True,
             )
             scheduler.add_job(
-                scheduler_jobs.weekly_digest_skeleton, "cron",
+                scheduler_jobs.weekly_coach, "cron",
                 day_of_week="sun", hour=9, args=[Session],
-                kwargs={"bot": bot, "owner_id": settings.owner_tg_id},
+                kwargs={"bot": bot, "owner_id": settings.owner_tg_id, "llm": llm},
                 id="digest", replace_existing=True,
             )
             scheduler.add_job(

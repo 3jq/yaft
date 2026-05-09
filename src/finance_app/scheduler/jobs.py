@@ -92,6 +92,23 @@ async def monthly_summary(
     log.info("scheduler.monthly_summary", month=agg["month_label"])
 
 
+async def weekly_coach(
+    Session: async_sessionmaker, *, bot: Bot, owner_id: int, llm
+) -> None:
+    """Send a weekly savings-coach narrative powered by LLM."""
+    import datetime as dt
+    from finance_app.analysis.weekly import gather, coach_narrative
+
+    async with Session() as s:
+        snap = await gather(s, today=dt.date.today())
+    text = await coach_narrative(llm, snap)
+    try:
+        await bot.send_message(owner_id, f"\U0001f4ca Weekly check-in\n\n{text}")
+    except Exception as exc:
+        log.warning("scheduler.weekly_coach.send_failed", error=str(exc))
+    log.info("scheduler.weekly_coach")
+
+
 async def weekly_digest_skeleton(Session: async_sessionmaker, *, bot: Bot, owner_id: int) -> None:
     """Send a basic month-to-date digest. Phase 5 will replace with LLM narrative."""
     today = dt.date.today()
