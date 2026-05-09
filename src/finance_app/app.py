@@ -10,6 +10,7 @@ from aiogram.filters import Command
 from fastapi import FastAPI
 from openai import AsyncOpenAI
 
+from finance_app.api.routes import transactions as tx_routes
 from finance_app.bot.auth import OwnerOnly
 from finance_app.bot.handlers.callbacks import handle_callback
 from finance_app.bot.handlers.commands import cmd_balance, cmd_help, cmd_list, cmd_start
@@ -58,6 +59,7 @@ def make_app() -> FastAPI:
     fastapi_app = FastAPI(lifespan=lifespan)
     fastapi_app.state.engine = engine
     fastapi_app.state.session_maker = Session
+    fastapi_app.include_router(tx_routes.router)
 
     @fastapi_app.get("/healthz")
     async def healthz():
