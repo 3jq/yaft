@@ -1,0 +1,21 @@
+[Unit]
+Description=Finance App (bot + WebApp)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=finance
+Group=finance
+WorkingDirectory=/opt/finance-app
+EnvironmentFile=/etc/finance-app.env
+ExecStart=/opt/finance-app/.venv/bin/python -m finance_app.app
+Restart=always
+RestartSec=5
+LimitNOFILE=65536
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=finance-app
+
+[Install]
+WantedBy=multi-user.target

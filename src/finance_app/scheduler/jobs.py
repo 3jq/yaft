@@ -14,6 +14,63 @@ from finance_app.domain.rrule import materialize_due
 from finance_app.logging_setup import log
 
 
+async def backup(
+    Session: async_sessionmaker,
+    *,
+    db_path: str,
+    out_dir: str,
+    rclone_remote: str | None,
+) -> str:
+    """Wrapper that runs the SQLite online backup. Session unused (kept for
+    scheduler-symmetry with the other jobs)."""
+    from finance_app.scheduler.backup import backup_sqlite
+    return await backup_sqlite(
+        db_path=db_path, out_dir=out_dir, rclone_remote=rclone_remote
+    )
+
+
+async def heartbeat(
+    Session: async_sessionmaker,
+    *,
+    bot: Bot,
+    owner_id: int,
+    backup_dir: str,
+) -> None:
+    """Daily DM verifying the service is alive: tx count, account count,
+    most recent backup filename. Missing the DM = something's broken."""
+    import os
+    async with Session() as s:
+        n_tx = (
+            await s.execute(
+                select(Transaction).where(Transaction.deleted_at.is_(None))
+            )
+        ).scalars().all()
+        n_acc = (
+            await s.execute(select(Account).where(Account.archived == 0))
+        ).scalars().all()
+    last_backup = "—"
+    try:
+        files = sorted(
+            f for f in os.listdir(backup_dir) if f.endswith(".sqlite.gz")
+        )
+        if files:
+            last_backup = files[-1]
+    except OSError:
+        pass
+    try:
+        await bot.send_message(
+            owner_id,
+            f"❤️ Alive · {len(n_tx)} tx · {len(n_acc)} accounts "
+            f"· last backup: {last_backup}",
+        )
+    except Exception as exc:
+        log.warning("scheduler.heartbeat.send_failed", error=str(exc))
+    log.info(
+        "scheduler.heartbeat", tx=len(n_tx), accounts=len(n_acc),
+        last_backup=last_backup,
+    )
+
+
 async def materialize_recurring(Session: async_sessionmaker) -> int:
     """Materialize any recurring transactions that are due today."""
     async with Session() as s:
@@ -77,6 +134,7 @@ async def monthly_summary(
 ) -> None:
     """Send a 5-bullet monthly summary narrative via LLM."""
     import datetime as dt
+
     from finance_app.analysis.monthly import aggregate_monthly, write_summary_narrative
 
     async with Session() as s:
@@ -97,7 +155,8 @@ async def weekly_coach(
 ) -> None:
     """Send a weekly savings-coach narrative powered by LLM."""
     import datetime as dt
-    from finance_app.analysis.weekly import gather, coach_narrative
+
+    from finance_app.analysis.weekly import coach_narrative, gather
 
     async with Session() as s:
         snap = await gather(s, today=dt.date.today())

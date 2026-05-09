@@ -18,8 +18,8 @@ from finance_app.analysis.qa_sql_tool import ReadOnlySQL
 from finance_app.api.routes import accounts as acc_routes
 from finance_app.api.routes import ask as ask_routes
 from finance_app.api.routes import budgets as bud_routes
-from finance_app.api.routes import forecast as forecast_routes
 from finance_app.api.routes import categories as cat_routes
+from finance_app.api.routes import forecast as forecast_routes
 from finance_app.api.routes import goals as goal_routes
 from finance_app.api.routes import recurring as rec_routes
 from finance_app.api.routes import settings as set_routes
@@ -44,9 +44,36 @@ from finance_app.pipeline.openrouter import OpenRouterClient
 from finance_app.scheduler import jobs as scheduler_jobs
 
 
+def _apply_sqlite_pragmas(db_url: str) -> None:
+    """Apply WAL + synchronous=NORMAL and run integrity_check on the SQLite file.
+
+    WAL is persisted in the database header, so applying it once via a sync
+    sqlite3 connection is sufficient — subsequent SQLAlchemy connections inherit
+    it. Skips in-memory and non-sqlite URLs.
+    """
+    if not db_url.startswith("sqlite"):
+        return
+    path = db_url.split("///", 1)[-1]
+    if not path or path == ":memory:":
+        return
+    import sqlite3
+    con = sqlite3.connect(path)
+    try:
+        con.execute("PRAGMA journal_mode=WAL")
+        con.execute("PRAGMA synchronous=NORMAL")
+        rows = con.execute("PRAGMA integrity_check").fetchall()
+        if rows and rows[0][0] != "ok":
+            raise RuntimeError(f"sqlite integrity_check failed: {rows}")
+    finally:
+        con.close()
+
+
 def make_app() -> FastAPI:
     settings = get_settings()
     configure_logging(settings.log_level)
+    if not settings.bot_token or not settings.owner_tg_id:
+        raise RuntimeError("BOT_TOKEN and OWNER_TG_ID must be set")
+    _apply_sqlite_pragmas(settings.db_url)
     engine = make_engine(settings.db_url)
     Session = make_sessionmaker(engine)
 
@@ -112,6 +139,29 @@ def make_app() -> FastAPI:
                 day=1, hour=9, args=[Session],
                 kwargs={"bot": bot, "owner_id": settings.owner_tg_id, "llm": llm},
                 id="monthly_summary", replace_existing=True,
+            )
+            db_path = settings.db_url.split("///", 1)[-1]
+            backup_dir = os.environ.get("BACKUP_DIR", "/var/lib/finance/backups")
+            rclone_remote = os.environ.get("BACKUP_RCLONE_REMOTE") or None
+            scheduler.add_job(
+                scheduler_jobs.backup, "cron",
+                hour=3, minute=0, args=[Session],
+                kwargs={
+                    "db_path": db_path,
+                    "out_dir": backup_dir,
+                    "rclone_remote": rclone_remote,
+                },
+                id="backup", replace_existing=True,
+            )
+            scheduler.add_job(
+                scheduler_jobs.heartbeat, "cron",
+                hour=12, minute=0, args=[Session],
+                kwargs={
+                    "bot": bot,
+                    "owner_id": settings.owner_tg_id,
+                    "backup_dir": backup_dir,
+                },
+                id="heartbeat", replace_existing=True,
             )
             scheduler.start()
             app.state.scheduler = scheduler

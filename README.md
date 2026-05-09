@@ -42,3 +42,10 @@ To expose the WebApp publicly without buying a domain: `sudo tailscale funnel --
 - Q&A uses a read-only SQLite connection (`PRAGMA query_only=1`) plus regex allowlist so the model cannot mutate data.
 - WebApp Ask tab is functional; Home shows a Forecast strip (EOM net / runway / avg daily).
 - Forecast is deterministic (linear extrapolation on trailing-90-day daily net cashflow); LLM only narrates the numbers.
+
+## Phase 6 status
+- Production-deployed via systemd (`deploy/finance-app.service`, `deploy/install.sh`); only `/app/*` and `/api/*` exposed publicly via Cloudflare Tunnel (Tailscale Funnel as fallback if no domain).
+- SQLite hardened on startup: `PRAGMA journal_mode=WAL`, `synchronous=NORMAL`, `integrity_check`. Fail-fast if `BOT_TOKEN`/`OWNER_TG_ID` are missing.
+- Nightly online SQLite backup (03:00 local) using `sqlite3.Connection.backup()` → gzip → 30 dailies + 12 monthlies retained; optional `rclone` push to a cloud drive.
+- Daily heartbeat DM at 12:00: `❤️ Alive · N tx · M accounts · last backup: …`. Missing it = something broke.
+- Operations runbook in `docs/operations.md` (env file, Funnel setup, rclone, restore, logs).
