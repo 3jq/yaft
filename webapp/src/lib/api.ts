@@ -69,6 +69,56 @@ export type Settings = {
   alert_thresholds_default: number[];
 };
 
+export type Budget = {
+  id: number;
+  category_id: number;
+  amount_minor: number;
+  currency: string;
+  alert_thresholds: number[];
+  starts_on?: string | null;
+  ends_on?: string | null;
+};
+
+export type BudgetProgress = {
+  budget_id: number;
+  category_id: number;
+  amount_minor: number;
+  spent_minor: number;
+  currency: string;
+  fraction: number;
+};
+
+export type Goal = {
+  id: number;
+  name: string;
+  target_minor: number;
+  currency: string;
+  progress_mode: "account_linked" | "contribution_tagged";
+  account_id: number | null;
+  target_date?: string | null;
+};
+
+export type GoalProgress = {
+  id: number;
+  name: string;
+  target_minor: number;
+  currency: string;
+  progress_minor: number;
+  fraction: number;
+  projected_hit_date: string | null;
+  target_date: string | null;
+};
+
+export type Recurring = {
+  id: number;
+  name: string;
+  rrule: string;
+  template_json: string;
+  next_run_at: string | null;
+  last_run_at: string | null;
+  active: number;
+};
+
 export const api = {
   // transactions
   listTransactions: (includeDeleted = false) =>
@@ -106,4 +156,31 @@ export const api = {
   getSettings: () => req<Settings>("/settings"),
   patchSettings: (b: Partial<Settings>) =>
     req<Settings>("/settings", { method: "PATCH", body: JSON.stringify(b) }),
+
+  // budgets
+  listBudgets: () => req<Budget[]>("/budgets"),
+  createBudget: (b: Omit<Budget, "id">) =>
+    req<Budget>("/budgets", { method: "POST", body: JSON.stringify(b) }),
+  deleteBudget: (id: number) =>
+    req<void>(`/budgets/${id}`, { method: "DELETE" }),
+  budgetProgress: () => req<BudgetProgress[]>("/budgets/progress"),
+
+  // goals
+  listGoals: () => req<Goal[]>("/goals"),
+  createGoal: (b: Omit<Goal, "id">) =>
+    req<Goal>("/goals", { method: "POST", body: JSON.stringify(b) }),
+  archiveGoal: (id: number) =>
+    req<void>(`/goals/${id}/archive`, { method: "POST" }),
+  goalProgress: () => req<GoalProgress[]>("/goals/progress"),
+
+  // recurring
+  listRecurring: () => req<Recurring[]>("/recurring"),
+  createRecurring: (b: { name: string; rrule: string; template_json: string; next_run_at?: string | null }) =>
+    req<Recurring>("/recurring", { method: "POST", body: JSON.stringify(b) }),
+  pauseRecurring: (id: number) =>
+    req<void>(`/recurring/${id}/pause`, { method: "POST" }),
+  resumeRecurring: (id: number) =>
+    req<void>(`/recurring/${id}/resume`, { method: "POST" }),
+  deleteRecurring: (id: number) =>
+    req<void>(`/recurring/${id}`, { method: "DELETE" }),
 };
