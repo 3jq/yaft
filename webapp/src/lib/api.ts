@@ -1,0 +1,109 @@
+import { getInitData } from "./tg";
+
+const API_BASE = "/api";
+
+async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const r = await fetch(API_BASE + path, {
+    ...init,
+    headers: {
+      "Content-Type": "application/json",
+      "X-Telegram-Init-Data": getInitData(),
+      ...(init.headers ?? {}),
+    },
+  });
+  if (!r.ok) throw new Error(`${r.status} ${await r.text()}`);
+  if (r.status === 204) return undefined as unknown as T;
+  return r.json() as Promise<T>;
+}
+
+export type Tx = {
+  id: number;
+  group_id: string | null;
+  occurred_at: string;
+  account_id: number;
+  category_id: number | null;
+  kind: string;
+  amount_minor: number;
+  currency: string;
+  base_amount_minor: number;
+  fx_rate: number | null;
+  merchant: string | null;
+  note: string | null;
+  source: string | null;
+  raw_input: string | null;
+  confidence: number | null;
+  deleted_at: string | null;
+};
+
+export type Account = {
+  id: number;
+  name: string;
+  kind: string;
+  currency: string;
+  archived: number;
+  opening_balance_minor: number;
+};
+
+export type Category = {
+  id: number;
+  name: string;
+  parent_id: number | null;
+  kind: string;
+  emoji: string | null;
+  archived: number;
+};
+
+export type Summary = {
+  base_currency: string;
+  month_label: string;
+  total_expense_minor: number;
+  total_income_minor: number;
+  by_category: { category_id: number | null; name: string; expense_minor: number }[];
+  account_balances: { account_id: number; name: string; balance_minor: number; currency: string }[];
+};
+
+export type Settings = {
+  base_currency: string;
+  timezone: string;
+  default_account_id: number;
+  alert_thresholds_default: number[];
+};
+
+export const api = {
+  // transactions
+  listTransactions: (includeDeleted = false) =>
+    req<Tx[]>(`/transactions?include_deleted=${includeDeleted}`),
+  getTransaction: (id: number) => req<Tx>(`/transactions/${id}`),
+  patchTransaction: (id: number, body: Partial<Tx>) =>
+    req<Tx>(`/transactions/${id}`, { method: "PATCH", body: JSON.stringify(body) }),
+  deleteTransaction: (id: number) =>
+    req<void>(`/transactions/${id}`, { method: "DELETE" }),
+  restoreTransaction: (id: number) =>
+    req<void>(`/transactions/${id}/restore`, { method: "POST" }),
+  splitTransaction: (id: number, splits: { category_id: number; amount_minor: number; note?: string }[]) =>
+    req<Tx[]>(`/transactions/${id}/split`, { method: "POST", body: JSON.stringify({ splits }) }),
+
+  // accounts
+  listAccounts: (includeArchived = false) =>
+    req<Account[]>(`/accounts?include_archived=${includeArchived}`),
+  createAccount: (b: Omit<Account, "id" | "archived">) =>
+    req<Account>("/accounts", { method: "POST", body: JSON.stringify(b) }),
+  archiveAccount: (id: number) =>
+    req<void>(`/accounts/${id}/archive`, { method: "POST" }),
+
+  // categories
+  listCategories: (includeArchived = false) =>
+    req<Category[]>(`/categories?include_archived=${includeArchived}`),
+  createCategory: (b: { name: string; parent_id?: number | null; kind: string; emoji?: string | null }) =>
+    req<Category>("/categories", { method: "POST", body: JSON.stringify(b) }),
+  archiveCategory: (id: number) =>
+    req<void>(`/categories/${id}/archive`, { method: "POST" }),
+
+  // summary
+  getSummary: () => req<Summary>("/summary"),
+
+  // settings
+  getSettings: () => req<Settings>("/settings"),
+  patchSettings: (b: Partial<Settings>) =>
+    req<Settings>("/settings", { method: "PATCH", body: JSON.stringify(b) }),
+};
