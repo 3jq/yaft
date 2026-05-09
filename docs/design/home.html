@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home — v9</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { background:#e8e8eb; font-family:'Geist', system-ui, sans-serif; color:#0a0a0a; }
+  .num { font-family:'Geist Mono', ui-monospace, monospace; font-variant-numeric:tabular-nums; letter-spacing:-0.01em; }
+
+  .phone { width:390px; height:920px; background:#fafafa; border-radius:38px; border:12px solid #0a0a0a; box-shadow:0 30px 60px -15px rgba(0,0,0,0.28); overflow:hidden; position:relative; }
+  .notch { position:absolute; top:0; left:50%; transform:translateX(-50%); width:120px; height:28px; background:#0a0a0a; border-radius:0 0 16px 16px; z-index:10; }
+  .scroll { overflow-y:auto; height:100%; padding-top:36px; padding-bottom:60px; }
+
+  .label { font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:#737373; font-weight:500; }
+  .hr { height:1px; background:#e5e5e5; }
+
+  .pill { font-size:10px; padding:2px 7px; border-radius:4px; background:#f4f4f5; color:#525252; border:1px solid #e5e5e5; font-family:'Geist Mono', monospace; }
+  .pill-pos { background:#fafafa; color:#0a0a0a; border-color:#d4d4d4; }
+
+  .donut { transform: rotate(-90deg); }
+  .donut circle { fill:none; stroke-width:9; }
+
+  .lnk { font-size:11px; color:#525252; border-bottom:1px solid #d4d4d4; padding-bottom:1px; }
+
+  .hm { width:18px; height:18px; border:1px solid #f0f0f1; }
+  .hm-empty { background:#fff; }
+  .hm-sm { width:11px; height:11px; }
+
+  .cal-row { display:grid; grid-template-columns:42px 1fr; align-items:center; }
+  .cal-cells { display:flex; justify-content:space-between; }
+  .dow { display:inline-block; width:18px; text-align:center; }
+
+  .row:hover { background:#f4f4f5; }
+  .nav-active { color:#0a0a0a; }
+  .nav-active::before { content:''; position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:18px; height:2px; background:#0a0a0a; }
+
+  .ico { width:18px; height:18px; stroke-width:1.75; stroke:currentColor; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .ico-xs { width:11px; height:11px; stroke-width:1.75; stroke:currentColor; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+
+  .no-halo, .no-halo *, svg, svg * {
+    outline:none !important; box-shadow:none !important;
+    -webkit-tap-highlight-color:transparent !important;
+  }
+  .no-halo:focus, .no-halo:focus-visible, .no-halo:focus-within {
+    outline:none !important; box-shadow:none !important;
+  }
+
+  .acct {
+    border:1px solid #e5e5e5; border-radius:8px; padding:10px 11px;
+    display:flex; flex-direction:column; gap:4px; background:#fff;
+  }
+
+  .ring-wrap { width:56px; height:56px; flex-shrink:0; }
+
+  /* tx grid: 2 cols, 2 rows. tight vertical gap between title→meta and amount→usd */
+  .tx-grid { display:grid; grid-template-columns:1fr auto; column-gap:12px; row-gap:2px; }
+</style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-8">
+<div class="space-y-2">
+  <div class="text-[10px] uppercase tracking-[0.18em] text-neutral-500 font-medium">Home — v9 (tx grid tightened, "Today" font swapped)</div>
+
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="scroll">
+
+      <!-- Top bar -->
+      <div class="px-5 pt-4 pb-3 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-4 h-4 rounded-sm" style="background:#0a0a0a"></div>
+          <span class="text-[13px] font-semibold tracking-tight">Finance</span>
+          <span class="pill">May 2026</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="text-neutral-500 grid place-items-center w-7 h-7">
+            <svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </button>
+          <div class="w-7 h-7 rounded-full border border-[#e5e5e5] grid place-items-center text-[11px] font-medium">A</div>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <!-- HERO -->
+      <div class="px-5 pt-7 pb-5 text-center">
+        <div class="label">Net worth</div>
+        <div class="num text-[52px] font-semibold leading-none tracking-tight mt-3">$12,847<span class="text-[26px] text-neutral-400 font-normal">.50</span></div>
+        <div class="num text-[14px] text-neutral-500 mt-3">+$342 · +2.7% · 7d</div>
+        <div class="mt-5 inline-flex items-end gap-1 h-7">
+          <span class="w-1.5 bg-neutral-300" style="height:30%"></span>
+          <span class="w-1.5 bg-neutral-300" style="height:55%"></span>
+          <span class="w-1.5 bg-neutral-300" style="height:42%"></span>
+          <span class="w-1.5 bg-neutral-400" style="height:68%"></span>
+          <span class="w-1.5 bg-neutral-400" style="height:58%"></span>
+          <span class="w-1.5 bg-neutral-500" style="height:78%"></span>
+          <span class="w-1.5 bg-neutral-700" style="height:72%"></span>
+          <span class="w-1.5" style="background:#0a0a0a; height:92%"></span>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <!-- KPI strip -->
+      <div class="grid grid-cols-3 px-5 py-3.5 text-center divide-x divide-[#e5e5e5]">
+        <div><div class="label">Spent</div><div class="num text-[13px] font-medium mt-1">−$847</div></div>
+        <div><div class="label">Saved</div><div class="num text-[13px] font-medium mt-1">+$2,153</div></div>
+        <div><div class="label">Goal</div><div class="num text-[13px] font-medium mt-1">32%</div></div>
+      </div>
+
+      <div class="hr"></div>
+
+      <!-- HEATMAP -->
+      <div class="px-5 py-4">
+        <div class="flex items-baseline justify-between mb-3">
+          <div class="label">Daily spend · May</div>
+          <span class="num text-[11px] text-neutral-500">avg&nbsp;$94/d</span>
+        </div>
+        <div class="cal-row mb-1.5">
+          <span></span>
+          <div class="cal-cells text-[8.5px] text-neutral-400 num">
+            <span class="dow">M</span><span class="dow">T</span><span class="dow">W</span><span class="dow">T</span><span class="dow">F</span><span class="dow">S</span><span class="dow">S</span>
+          </div>
+        </div>
+        <div class="space-y-2">
+          <div class="cal-row">
+            <span class="num text-[9.5px] text-neutral-400 text-right pr-2">Apr&nbsp;28</span>
+            <div class="cal-cells">
+              <div class="hm" style="background:#f0f0f1"></div>
+              <div class="hm" style="background:#e5e5e5"></div>
+              <div class="hm" style="background:#d4d4d4"></div>
+              <div class="hm" style="background:#a3a3a3"></div>
+              <div class="hm" style="background:#737373"></div>
+              <div class="hm" style="background:#404040"></div>
+              <div class="hm" style="background:#e5e5e5"></div>
+            </div>
+          </div>
+          <div class="cal-row">
+            <span class="num text-[9.5px] text-neutral-400 text-right pr-2">May&nbsp;5</span>
+            <div class="cal-cells">
+              <div class="hm" style="background:#a3a3a3"></div>
+              <div class="hm" style="background:#737373"></div>
+              <div class="hm" style="background:#0a0a0a"></div>
+              <div class="hm" style="background:#404040"></div>
+              <div class="hm" style="background:#0a0a0a; outline:1.5px solid #0a0a0a; outline-offset:1px"></div>
+              <div class="hm hm-empty"></div>
+              <div class="hm hm-empty"></div>
+            </div>
+          </div>
+          <div class="cal-row">
+            <span class="num text-[9.5px] text-neutral-400 text-right pr-2">May&nbsp;12</span>
+            <div class="cal-cells">
+              <div class="hm hm-empty"></div><div class="hm hm-empty"></div><div class="hm hm-empty"></div><div class="hm hm-empty"></div><div class="hm hm-empty"></div><div class="hm hm-empty"></div><div class="hm hm-empty"></div>
+            </div>
+          </div>
+          <div class="cal-row">
+            <span class="num text-[9.5px] text-neutral-400 text-right pr-2">May&nbsp;19</span>
+            <div class="cal-cells">
+              <div class="hm hm-empty"></div><div class="hm hm-empty"></div><div class="hm hm-empty"></div><div class="hm hm-empty"></div><div class="hm hm-empty"></div><div class="hm hm-empty"></div><div class="hm hm-empty"></div>
+            </div>
+          </div>
+          <div class="cal-row">
+            <span class="num text-[9.5px] text-neutral-400 text-right pr-2">May&nbsp;26</span>
+            <div class="cal-cells">
+              <div class="hm hm-empty"></div><div class="hm hm-empty"></div><div class="hm hm-empty"></div><div class="hm hm-empty"></div><div class="hm hm-empty"></div><div class="hm hm-empty"></div><div class="hm hm-empty"></div>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center justify-end gap-1.5 mt-3 text-[9px] text-neutral-500">
+          <span>less</span>
+          <span class="hm hm-sm" style="background:#f0f0f1"></span>
+          <span class="hm hm-sm" style="background:#a3a3a3"></span>
+          <span class="hm hm-sm" style="background:#404040"></span>
+          <span class="hm hm-sm" style="background:#0a0a0a"></span>
+          <span>more</span>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <!-- CATEGORIES -->
+      <div class="px-5 py-5">
+        <div class="flex items-center justify-between mb-4">
+          <div class="label">Categories</div>
+          <a class="lnk">all →</a>
+        </div>
+        <div class="grid grid-cols-[auto_1fr] gap-5 items-center">
+          <div class="relative no-halo">
+            <svg class="donut" width="104" height="104" viewBox="0 0 104 104">
+              <circle cx="52" cy="52" r="42" stroke="#f0f0f1"/>
+              <circle cx="52" cy="52" r="42" stroke="#0a0a0a" stroke-dasharray="97.6 166.3"/>
+              <circle cx="52" cy="52" r="42" stroke="#404040" stroke-dasharray="58 205.9" stroke-dashoffset="-97.6"/>
+              <circle cx="52" cy="52" r="42" stroke="#737373" stroke-dasharray="36.9 227" stroke-dashoffset="-155.6"/>
+              <circle cx="52" cy="52" r="42" stroke="#a3a3a3" stroke-dasharray="29 234.9" stroke-dashoffset="-192.5"/>
+              <circle cx="52" cy="52" r="42" stroke="#d4d4d4" stroke-dasharray="13.2 250.7" stroke-dashoffset="-221.5"/>
+            </svg>
+            <div class="absolute inset-0 flex flex-col items-center justify-center">
+              <div class="num text-[15px] font-semibold leading-none">$847</div>
+              <div class="text-[9px] uppercase tracking-wider text-neutral-500 mt-1">/&nbsp;$1,200</div>
+            </div>
+          </div>
+          <div class="text-[12.5px] space-y-1.5">
+            <div class="flex items-baseline justify-between"><span><span class="num text-neutral-400 mr-1.5">1</span>Food</span><span class="num text-neutral-700">$312.40</span></div>
+            <div class="flex items-baseline justify-between"><span><span class="num text-neutral-400 mr-1.5">2</span>Transport</span><span class="num text-neutral-700">$180.00</span></div>
+            <div class="flex items-baseline justify-between"><span><span class="num text-neutral-400 mr-1.5">3</span>Subs</span><span class="num text-neutral-700">$115.00</span></div>
+            <div class="flex items-baseline justify-between text-neutral-500"><span><span class="num text-neutral-400 mr-1.5">4</span>Misc</span><span class="num">&nbsp;&nbsp;$90.10</span></div>
+            <div class="flex items-baseline justify-between text-neutral-500"><span><span class="num text-neutral-400 mr-1.5">5</span>Health</span><span class="num">&nbsp;&nbsp;$45.00</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <!-- TODAY (font swapped to Geist Sans, tx grid tightened) -->
+      <div class="px-5 py-5">
+        <div class="flex items-baseline justify-between mb-3">
+          <span class="text-[15px] font-semibold tracking-tight">Today <span class="text-neutral-400 font-normal text-[12px]">· May 9</span></span>
+          <div class="text-right">
+            <div class="num text-[18px] font-semibold leading-none">−1,899&nbsp;₽</div>
+            <div class="num text-[11px] text-neutral-500 leading-none mt-1">≈ −$25.43</div>
+          </div>
+        </div>
+
+        <div class="-mx-2">
+          <!-- row -->
+          <div class="row px-2 py-2 rounded-md tx-grid">
+            <span class="text-[13px] font-medium">Купил кофе</span>
+            <span class="num text-[13px] text-right">−299&nbsp;₽</span>
+            <span class="text-[11px] text-neutral-500">
+              <span class="num">09:53</span><span class="text-neutral-300 mx-1">·</span>Cash<span class="text-neutral-300 mx-1">·</span>Food
+            </span>
+            <span class="num text-[10.5px] text-neutral-400 text-right">≈ −$4.01</span>
+          </div>
+
+          <!-- row -->
+          <div class="row px-2 py-2 rounded-md tx-grid">
+            <span class="text-[13px] font-medium">кофейня <span class="text-neutral-400 font-normal text-[12px]">· split (3)</span></span>
+            <span class="num text-[13px] text-right">−800&nbsp;₽</span>
+            <span class="text-[11px] text-neutral-500">
+              <span class="num">08:01</span><span class="text-neutral-300 mx-1">·</span>Cash<span class="text-neutral-300 mx-1">·</span>Food&nbsp;/&nbsp;Lunch
+            </span>
+            <span class="num text-[10.5px] text-neutral-400 text-right">≈ −$10.74</span>
+          </div>
+
+          <!-- row -->
+          <div class="row px-2 py-2 rounded-md tx-grid">
+            <span class="text-[13px] font-medium text-neutral-700">Cash → ByBit</span>
+            <span class="num text-[13px] text-neutral-500 text-right">±$700.00</span>
+            <span class="text-[11px] text-neutral-500">
+              <span class="num">07:55</span><span class="text-neutral-300 mx-1">·</span>Transfer
+            </span>
+            <span></span>
+          </div>
+
+          <!-- row -->
+          <div class="row px-2 py-2 rounded-md tx-grid">
+            <span class="text-[13px] font-medium">tip waiter</span>
+            <span class="num text-[13px] text-right">−$7.00</span>
+            <span class="text-[11px] text-neutral-500">
+              <span class="num">07:53</span><span class="text-neutral-300 mx-1">·</span>Cash<span class="text-neutral-300 mx-1">·</span>Food
+            </span>
+            <span></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <!-- ACCOUNTS -->
+      <div class="px-5 py-5">
+        <div class="flex items-center justify-between mb-3">
+          <div class="label">Accounts</div>
+          <a class="lnk">manage →</a>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div class="acct">
+            <div class="flex items-baseline justify-between">
+              <span class="text-[12px] font-medium">Cash</span>
+              <span class="num text-[9.5px] text-neutral-400">USD</span>
+            </div>
+            <div class="num text-[14px] font-semibold leading-tight">$1,200<span class="text-neutral-400 text-[10px] font-normal">.00</span></div>
+            <div class="mt-1 no-halo">
+              <svg width="100%" height="14" viewBox="0 0 80 14" preserveAspectRatio="none"><polyline points="0,9 10,8 20,7 30,8 40,5 50,7 60,5 70,4 80,3" fill="none" stroke="#0a0a0a" stroke-width="1.2"/></svg>
+            </div>
+            <div class="num text-[10px] text-neutral-500 flex items-center gap-1">
+              <svg class="ico-xs" viewBox="0 0 24 24"><polyline points="6 15 12 9 18 15"/></svg>
+              <span>+$120 / 30d</span>
+            </div>
+          </div>
+          <div class="acct">
+            <div class="flex items-baseline justify-between">
+              <span class="text-[12px] font-medium">ByBit</span>
+              <span class="num text-[9.5px] text-neutral-400">USD</span>
+            </div>
+            <div class="num text-[14px] font-semibold leading-tight">&nbsp;&nbsp;$950<span class="text-neutral-400 text-[10px] font-normal">.00</span></div>
+            <div class="mt-1 no-halo">
+              <svg width="100%" height="14" viewBox="0 0 80 14" preserveAspectRatio="none"><polyline points="0,3 10,4 20,5 30,4 40,7 50,5 60,7 70,9 80,8" fill="none" stroke="#0a0a0a" stroke-width="1.2"/></svg>
+            </div>
+            <div class="num text-[10px] text-neutral-500 flex items-center gap-1">
+              <svg class="ico-xs" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+              <span>−$50 / 30d</span>
+            </div>
+          </div>
+          <div class="acct">
+            <div class="flex items-baseline justify-between">
+              <span class="text-[12px] font-medium">Revolut</span>
+              <span class="num text-[9.5px] text-neutral-400">AED</span>
+            </div>
+            <div class="num text-[14px] font-semibold leading-tight">9,500<span class="text-neutral-400 text-[10px] font-normal">&nbsp;د.إ</span></div>
+            <div class="mt-1 no-halo">
+              <svg width="100%" height="14" viewBox="0 0 80 14" preserveAspectRatio="none"><polyline points="0,7 10,7 20,7 30,7 40,7 50,7 60,7 70,7 80,7" fill="none" stroke="#737373" stroke-width="1.2" stroke-dasharray="2 2"/></svg>
+            </div>
+            <div class="num text-[10px] text-neutral-500">flat / 30d</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <!-- GOALS -->
+      <div class="px-5 py-5 mb-2">
+        <div class="flex items-center justify-between mb-3">
+          <div class="label">Goals</div>
+          <a class="lnk">+ new</a>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="ring-wrap relative no-halo">
+            <svg width="56" height="56" viewBox="0 0 56 56" style="display:block; transform:rotate(-90deg)">
+              <circle cx="28" cy="28" r="22" fill="none" stroke="#f0f0f1" stroke-width="6"/>
+              <circle cx="28" cy="28" r="22" fill="none" stroke="#0a0a0a" stroke-width="6" stroke-linecap="round" stroke-dasharray="44.27 138.23"/>
+            </svg>
+            <div class="absolute inset-0 grid place-items-center">
+              <span class="num text-[11px] font-semibold">32%</span>
+            </div>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-baseline justify-between gap-2">
+              <span class="text-[13px] font-medium truncate">Emergency fund</span>
+              <span class="pill pill-pos flex items-center gap-1 shrink-0">
+                <svg class="ico-xs" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>on pace</span>
+              </span>
+            </div>
+            <div class="num text-[11.5px] text-neutral-500 mt-1">$3,200<span class="text-neutral-400">&nbsp;/&nbsp;</span>$10,000&nbsp;USD</div>
+            <div class="relative mt-2 h-[5px] bg-[#f0f0f1] rounded-full overflow-hidden">
+              <div class="absolute inset-y-0 left-0 rounded-full" style="background:#0a0a0a; width:32%"></div>
+              <span class="absolute inset-y-0 w-px" style="left:25%; background:#fafafa"></span>
+              <span class="absolute inset-y-0 w-px" style="left:50%; background:#d4d4d4"></span>
+              <span class="absolute inset-y-0 w-px" style="left:75%; background:#d4d4d4"></span>
+            </div>
+            <div class="flex items-center justify-between text-[10px] text-neutral-500 mt-2 num">
+              <span>~$850/mo</span>
+              <span>eta&nbsp;2026-08-12</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom nav -->
+      <div class="absolute bottom-0 inset-x-0 bg-[#fafafa]/95 backdrop-blur border-t border-[#e5e5e5] h-14 flex items-end justify-around pb-2 text-[10px] font-medium">
+        <a class="relative h-full flex flex-col items-center justify-end gap-1 nav-active">
+          <svg class="ico" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <span>Home</span>
+        </a>
+        <a class="h-full flex flex-col items-center justify-end gap-1 text-neutral-500">
+          <svg class="ico" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3.5" y1="6" x2="3.51" y2="6"/><line x1="3.5" y1="12" x2="3.51" y2="12"/><line x1="3.5" y1="18" x2="3.51" y2="18"/></svg>
+          <span>Tx</span>
+        </a>
+        <a class="h-full flex flex-col items-center justify-end gap-1 text-neutral-500">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
+          <span>Budgets</span>
+        </a>
+        <a class="h-full flex flex-col items-center justify-end gap-1 text-neutral-500">
+          <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+          <span>Goals</span>
+        </a>
+        <a class="h-full flex flex-col items-center justify-end gap-1 text-neutral-500">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
+          <span>Ask</span>
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="text-xs text-neutral-500 max-w-[390px] leading-relaxed">
+    Today rows are now a 2×2 CSS grid (title | amount on row 1, meta | usd-est on row 2) with row-gap:2px — title→meta and amount→usd are tight and identical, no asymmetric whitespace. "Today" header dropped Instrument Serif → Geist Sans 15px semibold + a muted "· May 9" date tag.
+  </div>
+</div>
+</body>
+</html>

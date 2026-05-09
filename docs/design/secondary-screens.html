@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Secondary screens — Edit · Accounts · Categories · Settings</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { background:#e8e8eb; font-family:'Geist', system-ui, sans-serif; color:#0a0a0a; }
+  .num { font-family:'Geist Mono', ui-monospace, monospace; font-variant-numeric:tabular-nums; letter-spacing:-0.01em; }
+  .phone { width:380px; height:880px; background:#fafafa; border-radius:38px; border:12px solid #0a0a0a; box-shadow:0 30px 60px -15px rgba(0,0,0,0.28); overflow:hidden; position:relative; }
+  .notch { position:absolute; top:0; left:50%; transform:translateX(-50%); width:120px; height:28px; background:#0a0a0a; border-radius:0 0 16px 16px; z-index:10; }
+  .scroll { overflow-y:auto; height:100%; padding-top:36px; padding-bottom:60px; }
+
+  .label { font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:#737373; font-weight:500; }
+  .hr { height:1px; background:#e5e5e5; }
+  .pill { font-size:10px; padding:2px 7px; border-radius:4px; background:#f4f4f5; color:#525252; border:1px solid #e5e5e5; font-family:'Geist Mono', monospace; }
+  .pill-warn { background:#fafafa; color:#0a0a0a; border-color:#a3a3a3; }
+  .lnk { font-size:11px; color:#525252; border-bottom:1px solid #d4d4d4; padding-bottom:1px; }
+  .row:hover { background:#f4f4f5; }
+  .ico { width:18px; height:18px; stroke-width:1.75; stroke:currentColor; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .ico-xs { width:11px; height:11px; stroke-width:1.75; stroke:currentColor; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .ico-sm { width:14px; height:14px; stroke-width:1.75; stroke:currentColor; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .no-halo, .no-halo *, svg, svg * { outline:none !important; box-shadow:none !important; -webkit-tap-highlight-color:transparent !important; }
+
+  .field { background:#fff; border:1px solid #e5e5e5; border-radius:6px; }
+  .field-row { display:grid; grid-template-columns:88px 1fr; align-items:center; padding:10px 12px; }
+  .field-row + .field-row { border-top:1px solid #f0f0f1; }
+  .field-row .label { padding-right:8px; }
+  .field-row input, .field-row select, .field-row textarea {
+    background:transparent; border:0; outline:0; width:100%;
+    font-family:'Geist Mono', ui-monospace, monospace; font-variant-numeric:tabular-nums;
+    font-size:13px; color:#0a0a0a;
+  }
+  .field-row .text-input { font-family:'Geist', system-ui, sans-serif; font-variant-numeric:normal; }
+  .seg { display:inline-flex; border:1px solid #e5e5e5; border-radius:6px; overflow:hidden; background:#fff; }
+  .seg button { padding:5px 10px; font-size:11px; color:#525252; background:transparent; }
+  .seg button.on { background:#0a0a0a; color:#fafafa; }
+
+  .btn { display:inline-flex; align-items:center; gap:6px; padding:8px 12px; border-radius:6px; font-size:12.5px; font-weight:500; }
+  .btn-primary { background:#0a0a0a; color:#fafafa; }
+  .btn-ghost { background:transparent; color:#0a0a0a; border:1px solid #e5e5e5; }
+  .btn-danger { background:transparent; color:#0a0a0a; border:1px solid #d4d4d4; }
+  .btn-danger:hover { background:#f4f4f5; }
+
+  .swatch { width:14px; height:14px; border-radius:3px; border:1px solid #e5e5e5; }
+</style>
+</head>
+<body class="min-h-screen p-8">
+<div class="max-w-[1700px] mx-auto space-y-3">
+  <div class="text-[10px] uppercase tracking-[0.2em] text-neutral-600 font-semibold">Secondary screens</div>
+
+  <div class="grid grid-cols-2 gap-8">
+
+  <!-- ============================================================ EDIT TX -->
+  <div class="space-y-2">
+    <div class="text-[11px] uppercase tracking-[0.16em] font-semibold text-neutral-700">Edit transaction</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="scroll">
+
+        <!-- Top bar -->
+        <div class="px-5 pt-4 pb-3 flex items-center justify-between">
+          <button class="text-neutral-700 flex items-center gap-1.5 text-[12.5px]">
+            <svg class="ico-sm" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+            Back
+          </button>
+          <span class="text-[13px] font-semibold tracking-tight">Tx <span class="num text-neutral-400">#142</span></span>
+          <button class="text-neutral-500 grid place-items-center w-7 h-7">
+            <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- raw_input quote -->
+        <div class="px-5 py-4 flex items-start gap-2 text-[12px] text-neutral-600">
+          <svg class="ico-xs mt-0.5 shrink-0" viewBox="0 0 24 24"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+          <span class="italic">"Купил кофе за 290 за 299 руб."</span>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- Header amount -->
+        <div class="px-5 pt-5 pb-4">
+          <div class="label">Amount</div>
+          <div class="flex items-baseline gap-3 mt-2">
+            <input class="num text-[34px] font-semibold tracking-tight bg-transparent outline-none w-[200px]" value="299.00" />
+            <select class="num pill bg-white">
+              <option>RUB</option><option>USD</option><option>EUR</option><option>AED</option>
+            </select>
+            <span class="num text-[12px] text-neutral-500 ml-auto">≈&nbsp;−$4.01</span>
+          </div>
+
+          <!-- kind segmented -->
+          <div class="mt-4 seg">
+            <button>Income</button>
+            <button class="on">Expense</button>
+            <button>Transfer</button>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- Form rows -->
+        <div class="px-5 py-3">
+          <div class="field">
+            <div class="field-row">
+              <span class="label">Date</span>
+              <input class="text-input" value="2026-05-09 09:53" />
+            </div>
+            <div class="field-row">
+              <span class="label">Account</span>
+              <select class="text-input"><option>Cash · USD</option><option>ByBit · USD</option><option>Revolut · AED</option></select>
+            </div>
+            <div class="field-row">
+              <span class="label">Category</span>
+              <select class="text-input"><option>Food / Coffee</option><option>Food / Lunch</option><option>Food / Groceries</option><option>Misc</option></select>
+            </div>
+            <div class="field-row">
+              <span class="label">Merchant</span>
+              <input class="text-input" placeholder="optional" />
+            </div>
+            <div class="field-row">
+              <span class="label">Note</span>
+              <input class="text-input" value="Купил кофе" />
+            </div>
+            <div class="field-row">
+              <span class="label">Tag goal</span>
+              <select class="text-input"><option>—</option><option>Emergency fund</option><option>Trip · Lisbon</option></select>
+            </div>
+          </div>
+
+          <!-- Confidence + flags -->
+          <div class="mt-3 flex items-center justify-between">
+            <span class="num text-[11px] text-neutral-500">confidence&nbsp;<span class="text-neutral-700">0.92</span> · source&nbsp;<span class="text-neutral-700">voice</span></span>
+            <span class="pill flex items-center gap-1">
+              <svg class="ico-xs" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+              flag for review
+            </span>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- Actions -->
+        <div class="px-5 py-4 grid grid-cols-2 gap-2">
+          <button class="btn btn-ghost justify-center">
+            <svg class="ico-sm" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+            Retry parse
+          </button>
+          <button class="btn btn-ghost justify-center">
+            <svg class="ico-sm" viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+            Split
+          </button>
+          <button class="btn btn-danger justify-center col-span-2">
+            <svg class="ico-sm" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            Delete
+          </button>
+        </div>
+
+        <!-- Sticky save bar -->
+        <div class="absolute bottom-0 inset-x-0 px-5 py-3 bg-[#fafafa]/95 backdrop-blur border-t border-[#e5e5e5] flex items-center gap-2">
+          <button class="btn btn-ghost flex-1 justify-center">Cancel</button>
+          <button class="btn btn-primary flex-1 justify-center">Save changes</button>
+        </div>
+
+      </div>
+    </div>
+    <div class="text-[11px] text-neutral-600 leading-relaxed">Opens via the bot's ✏️&nbsp;Edit deep-link. Top: original transcript quote (immutable audit). Hero amount with currency selector + base-ccy estimate + Income/Expense/Transfer segmented control. Form rows in a single bordered field. Confidence + source shown read-only at the bottom. Retry-parse / Split actions. Sticky save bar.</div>
+  </div>
+
+  <!-- ============================================================ ACCOUNTS -->
+  <div class="space-y-2">
+    <div class="text-[11px] uppercase tracking-[0.16em] font-semibold text-neutral-700">Accounts</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="scroll">
+        <div class="px-5 pt-4 pb-3 flex items-center justify-between">
+          <button class="text-neutral-700 flex items-center gap-1.5 text-[12.5px]">
+            <svg class="ico-sm" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+            Back
+          </button>
+          <span class="text-[13px] font-semibold tracking-tight">Accounts</span>
+          <button class="text-neutral-500 grid place-items-center w-7 h-7">
+            <svg class="ico" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+        </div>
+        <div class="hr"></div>
+
+        <!-- Total balance -->
+        <div class="px-5 py-5">
+          <div class="label">Net assets · USD</div>
+          <div class="num text-[28px] font-semibold tracking-tight leading-none mt-2">$12,847.50</div>
+          <div class="num text-[12px] text-neutral-500 mt-2">3 accounts · 2 currencies</div>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- Account rows with weight bar (share of net) -->
+        <div class="px-5 py-2">
+          <!-- row -->
+          <div class="row px-2 py-3 rounded-md">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <div class="text-[14px] font-semibold tracking-tight">Cash</div>
+                <div class="num text-[10.5px] text-neutral-500 mt-0.5">cash · USD · default</div>
+              </div>
+              <div class="text-right">
+                <div class="num text-[15px] font-semibold leading-none">$1,200.00</div>
+                <div class="num text-[10px] text-neutral-500 mt-1 flex items-center gap-1 justify-end">
+                  <svg class="ico-xs" viewBox="0 0 24 24"><polyline points="6 15 12 9 18 15"/></svg>
+                  +$120 / 30d
+                </div>
+              </div>
+            </div>
+            <!-- share-of-net bar -->
+            <div class="mt-2.5 h-[3px] bg-[#f0f0f1] rounded-full"><div class="h-full rounded-full" style="background:#0a0a0a; width:9.3%"></div></div>
+            <div class="num text-[9.5px] text-neutral-400 mt-1">9% of net</div>
+          </div>
+
+          <div class="row px-2 py-3 rounded-md">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <div class="text-[14px] font-semibold tracking-tight">ByBit</div>
+                <div class="num text-[10.5px] text-neutral-500 mt-0.5">bank · USD</div>
+              </div>
+              <div class="text-right">
+                <div class="num text-[15px] font-semibold leading-none">$950.00</div>
+                <div class="num text-[10px] text-neutral-500 mt-1 flex items-center gap-1 justify-end">
+                  <svg class="ico-xs" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                  −$50 / 30d
+                </div>
+              </div>
+            </div>
+            <div class="mt-2.5 h-[3px] bg-[#f0f0f1] rounded-full"><div class="h-full rounded-full" style="background:#0a0a0a; width:7.4%"></div></div>
+            <div class="num text-[9.5px] text-neutral-400 mt-1">7% of net</div>
+          </div>
+
+          <div class="row px-2 py-3 rounded-md">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <div class="text-[14px] font-semibold tracking-tight">Revolut</div>
+                <div class="num text-[10.5px] text-neutral-500 mt-0.5">bank · AED</div>
+              </div>
+              <div class="text-right">
+                <div class="num text-[15px] font-semibold leading-none">9,500&nbsp;د.إ</div>
+                <div class="num text-[10px] text-neutral-500 mt-1">≈ $2,584 · flat 30d</div>
+              </div>
+            </div>
+            <div class="mt-2.5 h-[3px] bg-[#f0f0f1] rounded-full"><div class="h-full rounded-full" style="background:#0a0a0a; width:20.1%"></div></div>
+            <div class="num text-[9.5px] text-neutral-400 mt-1">20% of net</div>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- Add account -->
+        <div class="px-5 py-4">
+          <div class="label mb-3">Add account</div>
+          <div class="field">
+            <div class="field-row">
+              <span class="label">Name</span>
+              <input class="text-input" placeholder="Savings" />
+            </div>
+            <div class="field-row">
+              <span class="label">Type</span>
+              <select class="text-input"><option>cash</option><option>bank</option><option>card</option><option>savings</option><option>business</option><option>other</option></select>
+            </div>
+            <div class="field-row">
+              <span class="label">Currency</span>
+              <select class="text-input"><option>USD</option><option>EUR</option><option>AED</option><option>RUB</option><option>GBP</option></select>
+            </div>
+            <div class="field-row">
+              <span class="label">Opening</span>
+              <input class="" value="0.00" />
+            </div>
+          </div>
+          <button class="btn btn-primary mt-3 w-full justify-center">
+            <svg class="ico-sm" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add account
+          </button>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- Archived -->
+        <div class="px-5 py-4">
+          <div class="flex items-baseline justify-between">
+            <span class="label">Archived</span>
+            <a class="lnk">show 1 →</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="text-[11px] text-neutral-600 leading-relaxed">Hero net-assets in base currency. Each account row has its own balance + 30d delta + share-of-net bar. Add-account form below. AED account shows AED balance and base-currency estimate.</div>
+  </div>
+
+  <!-- ============================================================ CATEGORIES -->
+  <div class="space-y-2">
+    <div class="text-[11px] uppercase tracking-[0.16em] font-semibold text-neutral-700">Categories</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="scroll">
+        <div class="px-5 pt-4 pb-3 flex items-center justify-between">
+          <button class="text-neutral-700 flex items-center gap-1.5 text-[12.5px]">
+            <svg class="ico-sm" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+            Back
+          </button>
+          <span class="text-[13px] font-semibold tracking-tight">Categories</span>
+          <button class="text-neutral-500 grid place-items-center w-7 h-7">
+            <svg class="ico" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+        </div>
+        <div class="hr"></div>
+
+        <!-- Tabs: kind segmented -->
+        <div class="px-5 pt-4">
+          <div class="seg">
+            <button class="on">Expense (10)</button>
+            <button>Income (2)</button>
+            <button>Transfer (1)</button>
+          </div>
+        </div>
+
+        <div class="px-5 py-4 space-y-3">
+          <!-- Parent: Food (3 children) -->
+          <div>
+            <div class="row px-2 py-2 rounded-md flex items-center justify-between">
+              <span class="flex items-center gap-2.5">
+                <svg class="ico-xs text-neutral-400" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                <span class="text-[13.5px] font-semibold">Food</span>
+                <span class="num text-[10px] text-neutral-500">3 children · 12 tx · $312</span>
+              </span>
+              <span class="num text-[10.5px] text-neutral-400">expense</span>
+            </div>
+            <div class="ml-7 space-y-1 mt-1">
+              <div class="row px-2 py-1.5 rounded-md flex items-center justify-between">
+                <span class="flex items-center gap-2"><span class="text-[12.5px]">Lunch</span><span class="num text-[10px] text-neutral-500">5 tx</span></span>
+                <span class="num text-[11.5px] text-neutral-700">$104.30</span>
+              </div>
+              <div class="row px-2 py-1.5 rounded-md flex items-center justify-between">
+                <span class="flex items-center gap-2"><span class="text-[12.5px]">Groceries</span><span class="num text-[10px] text-neutral-500">3 tx</span></span>
+                <span class="num text-[11.5px] text-neutral-700">$89.20</span>
+              </div>
+              <div class="row px-2 py-1.5 rounded-md flex items-center justify-between">
+                <span class="flex items-center gap-2"><span class="text-[12.5px]">Coffee</span><span class="num text-[10px] text-neutral-500">8 tx · auto-created</span></span>
+                <span class="num text-[11.5px] text-neutral-700">$31.27</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <!-- Other top-level (no children) -->
+          <div class="row px-2 py-2 rounded-md flex items-center justify-between">
+            <span class="flex items-center gap-2"><span class="text-[13.5px] font-medium">Transport</span><span class="num text-[10px] text-neutral-500">4 tx</span></span>
+            <span class="num text-[12px] text-neutral-700">$180.00</span>
+          </div>
+          <div class="row px-2 py-2 rounded-md flex items-center justify-between">
+            <span class="flex items-center gap-2"><span class="text-[13.5px] font-medium">Subscriptions</span><span class="num text-[10px] text-neutral-500">3 tx · 1 recurring</span></span>
+            <span class="num text-[12px] text-neutral-700">$115.00</span>
+          </div>
+          <div class="row px-2 py-2 rounded-md flex items-center justify-between">
+            <span class="flex items-center gap-2"><span class="text-[13.5px] font-medium">Misc</span><span class="num text-[10px] text-neutral-500">5 tx</span></span>
+            <span class="num text-[12px] text-neutral-700">$90.10</span>
+          </div>
+          <div class="row px-2 py-2 rounded-md flex items-center justify-between">
+            <span class="flex items-center gap-2"><span class="text-[13.5px] font-medium">Health</span><span class="num text-[10px] text-neutral-500">1 tx</span></span>
+            <span class="num text-[12px] text-neutral-700">$45.00</span>
+          </div>
+          <div class="row px-2 py-2 rounded-md flex items-center justify-between text-neutral-500">
+            <span class="flex items-center gap-2"><span class="text-[13.5px] font-medium">Housing</span><span class="num text-[10px]">no tx yet</span></span>
+            <span class="num text-[12px]">—</span>
+          </div>
+          <div class="row px-2 py-2 rounded-md flex items-center justify-between text-neutral-500">
+            <span class="flex items-center gap-2"><span class="text-[13.5px] font-medium">Utilities</span><span class="num text-[10px]">no tx yet</span></span>
+            <span class="num text-[12px]">—</span>
+          </div>
+          <div class="row px-2 py-2 rounded-md flex items-center justify-between text-neutral-500">
+            <span class="flex items-center gap-2"><span class="text-[13.5px] font-medium">Entertainment</span><span class="num text-[10px]">no tx yet</span></span>
+            <span class="num text-[12px]">—</span>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="px-5 py-4">
+          <div class="label mb-3">Add category</div>
+          <div class="field">
+            <div class="field-row">
+              <span class="label">Name</span>
+              <input class="text-input" placeholder="e.g. Coffee" />
+            </div>
+            <div class="field-row">
+              <span class="label">Parent</span>
+              <select class="text-input"><option>(top-level)</option><option>Food</option><option>Transport</option></select>
+            </div>
+            <div class="field-row">
+              <span class="label">Kind</span>
+              <select class="text-input"><option>expense</option><option>income</option><option>transfer</option></select>
+            </div>
+            <div class="field-row">
+              <span class="label">Emoji</span>
+              <input class="text-input" placeholder="☕" />
+            </div>
+          </div>
+          <button class="btn btn-primary mt-3 w-full justify-center">
+            <svg class="ico-sm" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add category
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="text-[11px] text-neutral-600 leading-relaxed">Tabbed by kind (Expense / Income / Transfer). Hierarchical: parent rows expand to show children. Each row shows tx count + month spend; auto-created categories tagged. Add-category form supports parent dropdown.</div>
+  </div>
+
+  <!-- ============================================================ SETTINGS -->
+  <div class="space-y-2">
+    <div class="text-[11px] uppercase tracking-[0.16em] font-semibold text-neutral-700">Settings</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="scroll">
+        <div class="px-5 pt-4 pb-3 flex items-center justify-between">
+          <button class="text-neutral-700 flex items-center gap-1.5 text-[12.5px]">
+            <svg class="ico-sm" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+            Back
+          </button>
+          <span class="text-[13px] font-semibold tracking-tight">Settings</span>
+          <span class="w-5"></span>
+        </div>
+        <div class="hr"></div>
+
+        <!-- Profile -->
+        <div class="px-5 py-5 flex items-center gap-3">
+          <div class="w-12 h-12 rounded-full bg-[#0a0a0a] text-[#fafafa] grid place-items-center text-[16px] font-semibold">A</div>
+          <div class="min-w-0">
+            <div class="text-[14px] font-semibold tracking-tight">Arthur</div>
+            <div class="num text-[10.5px] text-neutral-500 truncate">@finnackerbot · tg id 7510630531</div>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- Section: regional -->
+        <div class="px-5 py-4">
+          <div class="label mb-3">Regional</div>
+          <div class="field">
+            <div class="field-row">
+              <span class="label">Base currency</span>
+              <select class="text-input"><option>USD</option><option>EUR</option><option>AED</option><option>GBP</option></select>
+            </div>
+            <div class="field-row">
+              <span class="label">Timezone</span>
+              <select class="text-input"><option>Europe/Berlin</option><option>UTC</option><option>America/New_York</option></select>
+            </div>
+            <div class="field-row">
+              <span class="label">Default acct</span>
+              <select class="text-input"><option>Cash · USD</option><option>ByBit · USD</option></select>
+            </div>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- Section: AI -->
+        <div class="px-5 py-4">
+          <div class="label mb-3">AI</div>
+          <div class="field">
+            <div class="field-row">
+              <span class="label">Parse model</span>
+              <select class="text-input"><option>openai/gpt-4.1-mini</option><option>openai/gpt-5</option><option>anthropic/claude-haiku-4.5</option></select>
+            </div>
+            <div class="field-row">
+              <span class="label">STT model</span>
+              <select class="text-input"><option>google/gemini-2.5-flash</option><option>openai/gpt-4o-audio</option></select>
+            </div>
+            <div class="field-row">
+              <span class="label">API key</span>
+              <input class="text-input" type="password" value="••••••••••••" />
+            </div>
+          </div>
+          <div class="num text-[10.5px] text-neutral-500 mt-2 flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full" style="background:#0a0a0a"></span>
+            ~$0.18 spent this month · 142 calls
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- Section: alerts -->
+        <div class="px-5 py-4">
+          <div class="label mb-3">Alerts &amp; digest</div>
+          <div class="field">
+            <div class="field-row">
+              <span class="label">Thresholds</span>
+              <input class="" value="0.8, 1.0" />
+            </div>
+            <div class="field-row">
+              <span class="label">Weekly digest</span>
+              <input class="text-input" value="Sun 09:00" />
+            </div>
+            <div class="field-row">
+              <span class="label">Monthly summary</span>
+              <input class="text-input" value="1st 09:00" />
+            </div>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- Section: data -->
+        <div class="px-5 py-4">
+          <div class="label mb-3">Data</div>
+          <div class="space-y-2">
+            <button class="btn btn-ghost w-full justify-between">
+              <span class="flex items-center gap-2">
+                <svg class="ico-sm" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Export CSV
+              </span>
+              <span class="num text-[10.5px] text-neutral-400">~7 KB · 42 tx</span>
+            </button>
+            <button class="btn btn-ghost w-full justify-between">
+              <span class="flex items-center gap-2">
+                <svg class="ico-sm" viewBox="0 0 24 24"><path d="M22 12A10 10 0 1 1 12 2a10 10 0 0 1 10 10z"/><polyline points="12 6 12 12 16 14"/></svg>
+                Backups
+              </span>
+              <span class="num text-[10.5px] text-neutral-400">last: today 03:00 · ok</span>
+            </button>
+            <button class="btn btn-danger w-full justify-between">
+              <span class="flex items-center gap-2">
+                <svg class="ico-sm" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>
+                Reset all data
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- App info -->
+        <div class="px-5 py-4 text-[10.5px] text-neutral-500 num space-y-0.5">
+          <div>finance-app · v0.2.0 (phase 2)</div>
+          <div>db: 12 tables · 24 KB</div>
+          <div>healthz: ok · uptime 2h&nbsp;14m</div>
+        </div>
+      </div>
+    </div>
+    <div class="text-[11px] text-neutral-600 leading-relaxed">Sections: Regional · AI (with model picker + token usage indicator) · Alerts &amp; digest cadence · Data (Export CSV, Backups status, danger Reset). App-info footer with version + db stats + healthz.</div>
+  </div>
+
+  </div>
+</div>
+</body>
+</html>

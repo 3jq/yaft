@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tabs — Tx · Budgets · Goals · Ask</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body { background:#e8e8eb; font-family:'Geist', system-ui, sans-serif; color:#0a0a0a; }
+  .num { font-family:'Geist Mono', ui-monospace, monospace; font-variant-numeric:tabular-nums; letter-spacing:-0.01em; }
+
+  .phone { width:380px; height:880px; background:#fafafa; border-radius:38px; border:12px solid #0a0a0a; box-shadow:0 30px 60px -15px rgba(0,0,0,0.28); overflow:hidden; position:relative; }
+  .notch { position:absolute; top:0; left:50%; transform:translateX(-50%); width:120px; height:28px; background:#0a0a0a; border-radius:0 0 16px 16px; z-index:10; }
+  .scroll { overflow-y:auto; height:100%; padding-top:36px; padding-bottom:60px; }
+
+  .label { font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:#737373; font-weight:500; }
+  .hr { height:1px; background:#e5e5e5; }
+  .pill { font-size:10px; padding:2px 7px; border-radius:4px; background:#f4f4f5; color:#525252; border:1px solid #e5e5e5; font-family:'Geist Mono', monospace; }
+  .pill-pos { background:#fafafa; color:#0a0a0a; border-color:#d4d4d4; }
+  .pill-active { background:#0a0a0a; color:#fafafa; border-color:#0a0a0a; }
+  .lnk { font-size:11px; color:#525252; border-bottom:1px solid #d4d4d4; padding-bottom:1px; }
+  .row:hover { background:#f4f4f5; }
+  .nav-active::before { content:''; position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:18px; height:2px; background:#0a0a0a; }
+  .ico { width:18px; height:18px; stroke-width:1.75; stroke:currentColor; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .ico-xs { width:11px; height:11px; stroke-width:1.75; stroke:currentColor; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .ico-sm { width:14px; height:14px; stroke-width:1.75; stroke:currentColor; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .no-halo, .no-halo *, svg, svg * { outline:none !important; box-shadow:none !important; -webkit-tap-highlight-color:transparent !important; }
+  .ring-wrap { width:56px; height:56px; flex-shrink:0; }
+  .tx-grid { display:grid; grid-template-columns:1fr auto; column-gap:12px; row-gap:2px; }
+  .input { background:#f4f4f5; border:1px solid #e5e5e5; border-radius:6px; }
+  .chip { font-size:11px; padding:4px 10px; border-radius:999px; background:#fafafa; color:#525252; border:1px solid #e5e5e5; white-space:nowrap; }
+  .chip.active { background:#0a0a0a; color:#fafafa; border-color:#0a0a0a; }
+  .scrollx::-webkit-scrollbar { display:none; }
+  .scrollx { scrollbar-width:none; }
+  /* chat bubble for Ask */
+  .bubble-user { background:#0a0a0a; color:#fafafa; border-radius:14px 14px 4px 14px; }
+  .bubble-ai { background:#f4f4f5; color:#0a0a0a; border-radius:14px 14px 14px 4px; border:1px solid #e5e5e5; }
+</style>
+</head>
+<body class="min-h-screen p-8">
+<div class="max-w-[1700px] mx-auto space-y-3">
+  <div class="text-[10px] uppercase tracking-[0.2em] text-neutral-600 font-semibold">Other tabs in the v9 language</div>
+
+  <div class="grid grid-cols-2 gap-8">
+
+  <!-- ============================================================ TX -->
+  <div class="space-y-2">
+    <div class="text-[11px] uppercase tracking-[0.16em] font-semibold text-neutral-700">Transactions</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="scroll">
+
+        <!-- Top bar -->
+        <div class="px-5 pt-4 pb-3 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-4 h-4 rounded-sm" style="background:#0a0a0a"></div>
+            <span class="text-[13px] font-semibold tracking-tight">Transactions</span>
+            <span class="pill">May 2026</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="text-neutral-500 grid place-items-center w-7 h-7">
+              <svg class="ico" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
+            </button>
+            <div class="w-7 h-7 rounded-full border border-[#e5e5e5] grid place-items-center text-[11px] font-medium">A</div>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- Search -->
+        <div class="px-5 pt-3">
+          <div class="input flex items-center gap-2 px-3 py-2">
+            <svg class="ico-sm text-neutral-400" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="bg-transparent flex-1 text-[12.5px] outline-none placeholder:text-neutral-400" placeholder="Search transactions, merchants, notes…">
+            <kbd class="num text-[10px] text-neutral-400 px-1 border border-[#e5e5e5] rounded">⌘K</kbd>
+          </div>
+        </div>
+
+        <!-- Filter chips horizontal scroll -->
+        <div class="px-5 pt-3 pb-3 flex gap-2 overflow-x-auto scrollx">
+          <span class="chip active">All</span>
+          <span class="chip">Today</span>
+          <span class="chip">This week</span>
+          <span class="chip flex items-center gap-1">
+            <svg class="ico-xs" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Review (2)
+          </span>
+          <span class="chip">Cash</span>
+          <span class="chip">ByBit</span>
+          <span class="chip">Food</span>
+          <span class="chip">Transport</span>
+        </div>
+
+        <!-- Summary strip -->
+        <div class="grid grid-cols-3 mx-5 border border-[#e5e5e5] rounded-md divide-x divide-[#e5e5e5] text-center">
+          <div class="py-2">
+            <div class="label">Showing</div>
+            <div class="num text-[12px] font-medium mt-0.5">42 tx</div>
+          </div>
+          <div class="py-2">
+            <div class="label">Spent</div>
+            <div class="num text-[12px] font-medium mt-0.5">−$847.50</div>
+          </div>
+          <div class="py-2">
+            <div class="label">Income</div>
+            <div class="num text-[12px] font-medium mt-0.5">+$3,000</div>
+          </div>
+        </div>
+
+        <!-- Date section: Today -->
+        <div class="px-5 pt-5 pb-2 flex items-baseline justify-between">
+          <span class="text-[15px] font-semibold tracking-tight">Today <span class="text-neutral-400 font-normal text-[12px]">· Fri, May 9</span></span>
+          <span class="num text-[11px] text-neutral-500">−1,899₽ · ≈ −$25.43</span>
+        </div>
+        <div class="hr"></div>
+        <div class="px-3 py-2">
+          <div class="row px-2 py-2 rounded-md tx-grid">
+            <span class="text-[13px] font-medium">Купил кофе</span>
+            <span class="num text-[13px] text-right">−299&nbsp;₽</span>
+            <span class="text-[11px] text-neutral-500"><span class="num">09:53</span><span class="text-neutral-300 mx-1">·</span>Cash<span class="text-neutral-300 mx-1">·</span>Food</span>
+            <span class="num text-[10.5px] text-neutral-400 text-right">≈ −$4.01</span>
+          </div>
+          <div class="row px-2 py-2 rounded-md tx-grid">
+            <span class="text-[13px] font-medium">кофейня <span class="text-neutral-400 font-normal text-[12px]">· split (3)</span></span>
+            <span class="num text-[13px] text-right">−800&nbsp;₽</span>
+            <span class="text-[11px] text-neutral-500"><span class="num">08:01</span><span class="text-neutral-300 mx-1">·</span>Cash<span class="text-neutral-300 mx-1">·</span>Food / Lunch</span>
+            <span class="num text-[10.5px] text-neutral-400 text-right">≈ −$10.74</span>
+          </div>
+          <div class="row px-2 py-2 rounded-md tx-grid">
+            <span class="text-[13px] font-medium text-neutral-700">Cash → ByBit</span>
+            <span class="num text-[13px] text-right text-neutral-500">±$700.00</span>
+            <span class="text-[11px] text-neutral-500"><span class="num">07:55</span><span class="text-neutral-300 mx-1">·</span>Transfer</span>
+            <span></span>
+          </div>
+          <div class="row px-2 py-2 rounded-md tx-grid">
+            <span class="text-[13px] font-medium">tip waiter</span>
+            <span class="num text-[13px] text-right">−$7.00</span>
+            <span class="text-[11px] text-neutral-500"><span class="num">07:53</span><span class="text-neutral-300 mx-1">·</span>Cash<span class="text-neutral-300 mx-1">·</span>Food</span>
+            <span></span>
+          </div>
+        </div>
+
+        <!-- Date section: Yesterday -->
+        <div class="px-5 pt-3 pb-2 flex items-baseline justify-between">
+          <span class="text-[15px] font-semibold tracking-tight">Yesterday <span class="text-neutral-400 font-normal text-[12px]">· Thu, May 8</span></span>
+          <span class="num text-[11px] text-neutral-500">−$54.00</span>
+        </div>
+        <div class="hr"></div>
+        <div class="px-3 py-2">
+          <div class="row px-2 py-2 rounded-md tx-grid">
+            <span class="text-[13px] font-medium">Uber ride home</span>
+            <span class="num text-[13px] text-right">−$12.50</span>
+            <span class="text-[11px] text-neutral-500"><span class="num">22:14</span><span class="text-neutral-300 mx-1">·</span>Cash<span class="text-neutral-300 mx-1">·</span>Transport</span>
+            <span></span>
+          </div>
+          <div class="row px-2 py-2 rounded-md tx-grid">
+            <span class="text-[13px] font-medium flex items-center gap-1.5">groceries
+              <svg class="ico-xs text-amber-600" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </span>
+            <span class="num text-[13px] text-right">−$41.50</span>
+            <span class="text-[11px] text-neutral-500"><span class="num">17:32</span><span class="text-neutral-300 mx-1">·</span>Cash<span class="text-neutral-300 mx-1">·</span>Food / Groceries<span class="text-neutral-300 mx-1">·</span>review</span>
+            <span></span>
+          </div>
+        </div>
+
+        <!-- Date section: May 7 -->
+        <div class="px-5 pt-3 pb-2 flex items-baseline justify-between">
+          <span class="text-[15px] font-semibold tracking-tight">Wed, May 7</span>
+          <span class="num text-[11px] text-neutral-500">−$3.50</span>
+        </div>
+        <div class="hr"></div>
+        <div class="px-3 py-2">
+          <div class="row px-2 py-2 rounded-md tx-grid">
+            <span class="text-[13px] font-medium">Spotify</span>
+            <span class="num text-[13px] text-right">−$3.50</span>
+            <span class="text-[11px] text-neutral-500"><span class="num">09:00</span><span class="text-neutral-300 mx-1">·</span>ByBit<span class="text-neutral-300 mx-1">·</span>Subscriptions<span class="text-neutral-300 mx-1">·</span>recurring</span>
+            <span></span>
+          </div>
+        </div>
+
+        <!-- floating add fab -->
+        <button class="absolute right-5 bottom-20 w-12 h-12 rounded-full grid place-items-center text-[#fafafa] no-halo" style="background:#0a0a0a">
+          <svg class="ico" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+
+        <!-- nav -->
+        <div class="absolute bottom-0 inset-x-0 bg-[#fafafa]/95 backdrop-blur border-t border-[#e5e5e5] h-14 flex items-end justify-around pb-2 text-[10px] font-medium">
+          <a class="h-full flex flex-col items-center justify-end gap-1 text-neutral-500"><svg class="ico" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+          <a class="relative h-full flex flex-col items-center justify-end gap-1 nav-active"><svg class="ico" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3.5" y1="6" x2="3.51" y2="6"/><line x1="3.5" y1="12" x2="3.51" y2="12"/><line x1="3.5" y1="18" x2="3.51" y2="18"/></svg><span>Tx</span></a>
+          <a class="h-full flex flex-col items-center justify-end gap-1 text-neutral-500"><svg class="ico" viewBox="0 0 24 24"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg><span>Budgets</span></a>
+          <a class="h-full flex flex-col items-center justify-end gap-1 text-neutral-500"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>Goals</span></a>
+          <a class="h-full flex flex-col items-center justify-end gap-1 text-neutral-500"><svg class="ico" viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg><span>Ask</span></a>
+        </div>
+      </div>
+    </div>
+    <div class="text-[11px] text-neutral-600 leading-relaxed">Search bar (⌘K) + horizontal filter-chip scroll (incl. <span class="num">Review (2)</span> for low-confidence rows). Date-grouped sections with totals on the right. Same tx-grid row layout as Home. Floating + button bottom-right for manual add.</div>
+  </div>
+
+  <!-- ============================================================ BUDGETS -->
+  <div class="space-y-2">
+    <div class="text-[11px] uppercase tracking-[0.16em] font-semibold text-neutral-700">Budgets</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="scroll">
+        <div class="px-5 pt-4 pb-3 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-4 h-4 rounded-sm" style="background:#0a0a0a"></div>
+            <span class="text-[13px] font-semibold tracking-tight">Budgets</span>
+            <span class="pill">May 2026</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="text-neutral-500 grid place-items-center w-7 h-7">
+              <svg class="ico" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+            <div class="w-7 h-7 rounded-full border border-[#e5e5e5] grid place-items-center text-[11px] font-medium">A</div>
+          </div>
+        </div>
+        <div class="hr"></div>
+
+        <!-- Hero -->
+        <div class="px-5 py-5 text-center">
+          <div class="label">Spent / Budgeted · May</div>
+          <div class="num text-[36px] font-semibold tracking-tight leading-none mt-3">$847<span class="text-neutral-400 text-[18px] font-normal">&nbsp;/&nbsp;$1,200</span></div>
+          <div class="num text-[12px] text-neutral-500 mt-3">70% used · 22 days left</div>
+          <div class="relative mx-auto mt-4 h-[5px] bg-[#f0f0f1] rounded-full overflow-hidden" style="max-width:260px">
+            <div class="absolute inset-y-0 left-0 rounded-full" style="background:#0a0a0a; width:70%"></div>
+            <span class="absolute inset-y-0 w-px" style="left:70%; background:#fafafa"></span>
+            <span class="absolute -top-[3px] -translate-x-1/2 text-[8.5px] text-neutral-400 num" style="left:33%">today</span>
+            <span class="absolute inset-y-[-2px] w-px" style="left:33%; background:#a3a3a3"></span>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="px-5 py-3 flex items-center justify-between">
+          <div class="label">By category</div>
+          <div class="flex items-center gap-2">
+            <a class="lnk">edit thresholds</a>
+          </div>
+        </div>
+        <div class="hr"></div>
+
+        <!-- Budget items -->
+        <div class="px-5 py-2 space-y-3.5">
+          <!-- over -->
+          <div>
+            <div class="flex items-baseline justify-between gap-2">
+              <span class="text-[13px] font-medium">Food</span>
+              <span class="num text-[12px]">$312<span class="text-neutral-400">&nbsp;/&nbsp;$300</span></span>
+            </div>
+            <div class="relative mt-1.5 h-[5px] bg-[#f0f0f1] rounded-full overflow-hidden">
+              <div class="absolute inset-y-0 left-0 rounded-full" style="background:#0a0a0a; width:100%"></div>
+              <span class="absolute inset-y-0 w-px" style="left:80%; background:#fafafa"></span>
+            </div>
+            <div class="flex items-center justify-between mt-1.5 num text-[10.5px] text-neutral-500">
+              <span class="flex items-center gap-1 text-neutral-700">
+                <svg class="ico-xs" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                104% · over by $12
+              </span>
+              <span>5 days early</span>
+            </div>
+          </div>
+          <!-- 80% -->
+          <div>
+            <div class="flex items-baseline justify-between gap-2">
+              <span class="text-[13px] font-medium">Transport</span>
+              <span class="num text-[12px]">$180<span class="text-neutral-400">&nbsp;/&nbsp;$220</span></span>
+            </div>
+            <div class="relative mt-1.5 h-[5px] bg-[#f0f0f1] rounded-full overflow-hidden">
+              <div class="absolute inset-y-0 left-0 rounded-full" style="background:#0a0a0a; width:82%"></div>
+              <span class="absolute inset-y-0 w-px" style="left:80%; background:#fafafa"></span>
+            </div>
+            <div class="flex items-center justify-between mt-1.5 num text-[10.5px] text-neutral-500">
+              <span>82% · proj $245 (over)</span>
+              <span>22 d left</span>
+            </div>
+          </div>
+          <!-- on track -->
+          <div>
+            <div class="flex items-baseline justify-between gap-2">
+              <span class="text-[13px] font-medium">Subscriptions</span>
+              <span class="num text-[12px]">$115<span class="text-neutral-400">&nbsp;/&nbsp;$200</span></span>
+            </div>
+            <div class="relative mt-1.5 h-[5px] bg-[#f0f0f1] rounded-full overflow-hidden">
+              <div class="absolute inset-y-0 left-0 rounded-full" style="background:#0a0a0a; width:57%"></div>
+              <span class="absolute inset-y-0 w-px" style="left:80%; background:#d4d4d4"></span>
+            </div>
+            <div class="flex items-center justify-between mt-1.5 num text-[10.5px] text-neutral-500">
+              <span>57% · on track</span>
+              <span>22 d left</span>
+            </div>
+          </div>
+          <div>
+            <div class="flex items-baseline justify-between gap-2">
+              <span class="text-[13px] font-medium">Misc</span>
+              <span class="num text-[12px]">$90<span class="text-neutral-400">&nbsp;/&nbsp;$150</span></span>
+            </div>
+            <div class="relative mt-1.5 h-[5px] bg-[#f0f0f1] rounded-full overflow-hidden">
+              <div class="absolute inset-y-0 left-0 rounded-full" style="background:#0a0a0a; width:60%"></div>
+              <span class="absolute inset-y-0 w-px" style="left:80%; background:#d4d4d4"></span>
+            </div>
+            <div class="flex items-center justify-between mt-1.5 num text-[10.5px] text-neutral-500">
+              <span>60% · on track</span>
+              <span>22 d left</span>
+            </div>
+          </div>
+          <div>
+            <div class="flex items-baseline justify-between gap-2">
+              <span class="text-[13px] font-medium">Health</span>
+              <span class="num text-[12px]">$45<span class="text-neutral-400">&nbsp;/&nbsp;$200</span></span>
+            </div>
+            <div class="relative mt-1.5 h-[5px] bg-[#f0f0f1] rounded-full overflow-hidden">
+              <div class="absolute inset-y-0 left-0 rounded-full" style="background:#0a0a0a; width:22%"></div>
+              <span class="absolute inset-y-0 w-px" style="left:80%; background:#d4d4d4"></span>
+            </div>
+            <div class="flex items-center justify-between mt-1.5 num text-[10.5px] text-neutral-500">
+              <span>22% · plenty left</span>
+              <span>22 d left</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hr mt-3"></div>
+
+        <!-- Recent alerts -->
+        <div class="px-5 py-4">
+          <div class="label mb-2">Recent alerts</div>
+          <div class="text-[12px] space-y-2">
+            <div class="flex items-center gap-2">
+              <svg class="ico-xs text-neutral-700" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <span>Food crossed 100% on May 9</span>
+              <span class="num text-neutral-400 text-[10px] ml-auto">today</span>
+            </div>
+            <div class="flex items-center gap-2 text-neutral-500">
+              <svg class="ico-xs" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <span>Food crossed 80% on May 6</span>
+              <span class="num text-neutral-400 text-[10px] ml-auto">3 d ago</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- nav -->
+        <div class="absolute bottom-0 inset-x-0 bg-[#fafafa]/95 backdrop-blur border-t border-[#e5e5e5] h-14 flex items-end justify-around pb-2 text-[10px] font-medium">
+          <a class="h-full flex flex-col items-center justify-end gap-1 text-neutral-500"><svg class="ico" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+          <a class="h-full flex flex-col items-center justify-end gap-1 text-neutral-500"><svg class="ico" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3.5" y1="6" x2="3.51" y2="6"/><line x1="3.5" y1="12" x2="3.51" y2="12"/><line x1="3.5" y1="18" x2="3.51" y2="18"/></svg><span>Tx</span></a>
+          <a class="relative h-full flex flex-col items-center justify-end gap-1 nav-active"><svg class="ico" viewBox="0 0 24 24"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg><span>Budgets</span></a>
+          <a class="h-full flex flex-col items-center justify-end gap-1 text-neutral-500"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>Goals</span></a>
+          <a class="h-full flex flex-col items-center justify-end gap-1 text-neutral-500"><svg class="ico" viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg><span>Ask</span></a>
+        </div>
+      </div>
+    </div>
+    <div class="text-[11px] text-neutral-600 leading-relaxed">Hero with month-to-date totals + a "today" pacing tick on the master bar (where you'd be if you spent evenly). Per-category bars with 80% threshold tick (subtle when under, white when crossed). Recent-alerts log at the bottom.</div>
+  </div>
+
+  <!-- ============================================================ GOALS -->
+  <div class="space-y-2">
+    <div class="text-[11px] uppercase tracking-[0.16em] font-semibold text-neutral-700">Goals</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="scroll">
+        <div class="px-5 pt-4 pb-3 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-4 h-4 rounded-sm" style="background:#0a0a0a"></div>
+            <span class="text-[13px] font-semibold tracking-tight">Goals</span>
+            <span class="pill">3 active</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="text-neutral-500 grid place-items-center w-7 h-7">
+              <svg class="ico" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+            <div class="w-7 h-7 rounded-full border border-[#e5e5e5] grid place-items-center text-[11px] font-medium">A</div>
+          </div>
+        </div>
+        <div class="hr"></div>
+
+        <!-- Hero summary -->
+        <div class="px-5 py-5 text-center">
+          <div class="label">Saved toward goals</div>
+          <div class="num text-[36px] font-semibold tracking-tight leading-none mt-3">$4,200</div>
+          <div class="num text-[12px] text-neutral-500 mt-3">$5,800 to go · ~7 mo</div>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- Goal 1 -->
+        <div class="px-5 py-5">
+          <div class="flex items-center gap-3">
+            <div class="ring-wrap relative no-halo">
+              <svg width="56" height="56" viewBox="0 0 56 56" style="display:block; transform:rotate(-90deg)">
+                <circle cx="28" cy="28" r="22" fill="none" stroke="#f0f0f1" stroke-width="6"/>
+                <circle cx="28" cy="28" r="22" fill="none" stroke="#0a0a0a" stroke-width="6" stroke-linecap="round" stroke-dasharray="44.27 138.23"/>
+              </svg>
+              <div class="absolute inset-0 grid place-items-center"><span class="num text-[11px] font-semibold">32%</span></div>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-baseline justify-between gap-2">
+                <span class="text-[14px] font-semibold tracking-tight">Emergency fund</span>
+                <span class="pill pill-pos flex items-center gap-1 shrink-0">
+                  <svg class="ico-xs" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>on pace
+                </span>
+              </div>
+              <div class="num text-[11.5px] text-neutral-500 mt-1">$3,200<span class="text-neutral-400">&nbsp;/&nbsp;</span>$10,000&nbsp;USD</div>
+              <div class="relative mt-2 h-[5px] bg-[#f0f0f1] rounded-full overflow-hidden">
+                <div class="absolute inset-y-0 left-0 rounded-full" style="background:#0a0a0a; width:32%"></div>
+                <span class="absolute inset-y-0 w-px" style="left:25%; background:#fafafa"></span>
+                <span class="absolute inset-y-0 w-px" style="left:50%; background:#d4d4d4"></span>
+                <span class="absolute inset-y-0 w-px" style="left:75%; background:#d4d4d4"></span>
+              </div>
+              <div class="flex items-center justify-between text-[10px] text-neutral-500 mt-2 num">
+                <span>~$850/mo</span>
+                <span>eta&nbsp;2026-08-12</span>
+              </div>
+            </div>
+          </div>
+          <!-- contributions sparkbar -->
+          <div class="mt-4 pl-[68px] no-halo">
+            <div class="flex items-center justify-between text-[10px] text-neutral-500 mb-1.5">
+              <span class="label">Monthly contributions</span>
+              <span class="num">last 6 mo</span>
+            </div>
+            <div class="flex items-end gap-1.5 h-10">
+              <div class="flex-1 bg-neutral-300 rounded-sm" style="height:50%"></div>
+              <div class="flex-1 bg-neutral-400 rounded-sm" style="height:65%"></div>
+              <div class="flex-1 bg-neutral-500 rounded-sm" style="height:55%"></div>
+              <div class="flex-1 bg-neutral-700 rounded-sm" style="height:80%"></div>
+              <div class="flex-1 bg-neutral-700 rounded-sm" style="height:85%"></div>
+              <div class="flex-1 rounded-sm" style="height:90%; background:#0a0a0a"></div>
+            </div>
+            <div class="flex items-center justify-between text-[9px] text-neutral-400 mt-1 num">
+              <span>Dec</span><span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- Goal 2 -->
+        <div class="px-5 py-5">
+          <div class="flex items-center gap-3">
+            <div class="ring-wrap relative no-halo">
+              <svg width="56" height="56" viewBox="0 0 56 56" style="display:block; transform:rotate(-90deg)">
+                <circle cx="28" cy="28" r="22" fill="none" stroke="#f0f0f1" stroke-width="6"/>
+                <circle cx="28" cy="28" r="22" fill="none" stroke="#0a0a0a" stroke-width="6" stroke-linecap="round" stroke-dasharray="89.5 138.23"/>
+              </svg>
+              <div class="absolute inset-0 grid place-items-center"><span class="num text-[11px] font-semibold">65%</span></div>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-baseline justify-between gap-2">
+                <span class="text-[14px] font-semibold tracking-tight">Trip · Lisbon</span>
+                <span class="pill flex items-center gap-1 shrink-0" style="background:#fafafa; color:#0a0a0a; border-color:#a3a3a3">
+                  <svg class="ico-xs" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>behind
+                </span>
+              </div>
+              <div class="num text-[11.5px] text-neutral-500 mt-1">$1,300<span class="text-neutral-400">&nbsp;/&nbsp;</span>$2,000&nbsp;USD</div>
+              <div class="relative mt-2 h-[5px] bg-[#f0f0f1] rounded-full overflow-hidden">
+                <div class="absolute inset-y-0 left-0 rounded-full" style="background:#0a0a0a; width:65%"></div>
+                <span class="absolute inset-y-0 w-px" style="left:25%; background:#d4d4d4"></span>
+                <span class="absolute inset-y-0 w-px" style="left:50%; background:#fafafa"></span>
+                <span class="absolute inset-y-0 w-px" style="left:75%; background:#d4d4d4"></span>
+              </div>
+              <div class="flex items-center justify-between text-[10px] text-neutral-500 mt-2 num">
+                <span>~$140/mo</span>
+                <span>eta&nbsp;2026-09-30 (target&nbsp;Aug)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <!-- Goal 3 collapsed -->
+        <div class="px-5 py-5">
+          <div class="flex items-center gap-3">
+            <div class="ring-wrap relative no-halo">
+              <svg width="56" height="56" viewBox="0 0 56 56" style="display:block; transform:rotate(-90deg)">
+                <circle cx="28" cy="28" r="22" fill="none" stroke="#f0f0f1" stroke-width="6"/>
+                <circle cx="28" cy="28" r="22" fill="none" stroke="#0a0a0a" stroke-width="6" stroke-linecap="round" stroke-dasharray="11 138.23"/>
+              </svg>
+              <div class="absolute inset-0 grid place-items-center"><span class="num text-[11px] font-semibold">8%</span></div>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-baseline justify-between gap-2">
+                <span class="text-[14px] font-semibold tracking-tight">New laptop</span>
+                <span class="pill pill-pos flex items-center gap-1 shrink-0">
+                  <svg class="ico-xs" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>just started
+                </span>
+              </div>
+              <div class="num text-[11.5px] text-neutral-500 mt-1">$200<span class="text-neutral-400">&nbsp;/&nbsp;</span>$2,500&nbsp;USD</div>
+              <div class="relative mt-2 h-[5px] bg-[#f0f0f1] rounded-full overflow-hidden">
+                <div class="absolute inset-y-0 left-0 rounded-full" style="background:#0a0a0a; width:8%"></div>
+              </div>
+              <div class="flex items-center justify-between text-[10px] text-neutral-500 mt-2 num">
+                <span>~$200/mo</span>
+                <span>eta&nbsp;~12&nbsp;mo</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- nav -->
+        <div class="absolute bottom-0 inset-x-0 bg-[#fafafa]/95 backdrop-blur border-t border-[#e5e5e5] h-14 flex items-end justify-around pb-2 text-[10px] font-medium">
+          <a class="h-full flex flex-col items-center justify-end gap-1 text-neutral-500"><svg class="ico" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+          <a class="h-full flex flex-col items-center justify-end gap-1 text-neutral-500"><svg class="ico" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3.5" y1="6" x2="3.51" y2="6"/><line x1="3.5" y1="12" x2="3.51" y2="12"/><line x1="3.5" y1="18" x2="3.51" y2="18"/></svg><span>Tx</span></a>
+          <a class="h-full flex flex-col items-center justify-end gap-1 text-neutral-500"><svg class="ico" viewBox="0 0 24 24"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg><span>Budgets</span></a>
+          <a class="relative h-full flex flex-col items-center justify-end gap-1 nav-active"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>Goals</span></a>
+          <a class="h-full flex flex-col items-center justify-end gap-1 text-neutral-500"><svg class="ico" viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg><span>Ask</span></a>
+        </div>
+      </div>
+    </div>
+    <div class="text-[11px] text-neutral-600 leading-relaxed">Hero summary across all goals. Each goal has the Home-style ring + bar layout, plus pace pill (on pace / behind / just started). The active/expanded goal also shows a 6-month contributions sparkbar.</div>
+  </div>
+
+  <!-- ============================================================ ASK -->
+  <div class="space-y-2">
+    <div class="text-[11px] uppercase tracking-[0.16em] font-semibold text-neutral-700">Ask</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="scroll" style="padding-bottom:120px">
+        <div class="px-5 pt-4 pb-3 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-4 h-4 rounded-sm" style="background:#0a0a0a"></div>
+            <span class="text-[13px] font-semibold tracking-tight">Ask</span>
+            <span class="pill flex items-center gap-1">
+              <svg class="ico-xs" viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+              gpt-4.1-mini
+            </span>
+          </div>
+          <button class="text-neutral-500 text-[11px] flex items-center gap-1">
+            <svg class="ico-xs" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+            new
+          </button>
+        </div>
+        <div class="hr"></div>
+
+        <!-- Conversation -->
+        <div class="px-4 py-4 space-y-4">
+          <!-- user msg -->
+          <div class="flex justify-end">
+            <div class="bubble-user max-w-[80%] px-3 py-2 text-[12.5px]">
+              How much did I spend on coffee this month?
+            </div>
+          </div>
+          <!-- ai msg -->
+          <div class="flex">
+            <div class="bubble-ai max-w-[88%] px-3 py-2.5 text-[12.5px] space-y-2">
+              <div>You spent <span class="num font-semibold">$31.27</span> on coffee in May so far — across <span class="num">8 transactions</span> at 3 places. That's <span class="num">+47%</span> vs your April pace.</div>
+              <!-- mini chart -->
+              <div class="bg-white border border-[#e5e5e5] rounded-md p-2 mt-1">
+                <div class="text-[9.5px] uppercase tracking-wider text-neutral-500 mb-1.5">Coffee · daily</div>
+                <div class="flex items-end gap-[3px] h-8">
+                  <div class="flex-1" style="height:30%; background:#a3a3a3"></div>
+                  <div class="flex-1" style="height:55%; background:#737373"></div>
+                  <div class="flex-1" style="height:80%; background:#404040"></div>
+                  <div class="flex-1" style="height:65%; background:#737373"></div>
+                  <div class="flex-1" style="height:45%; background:#a3a3a3"></div>
+                  <div class="flex-1" style="height:90%; background:#0a0a0a"></div>
+                  <div class="flex-1" style="height:75%; background:#404040"></div>
+                  <div class="flex-1" style="height:100%; background:#0a0a0a"></div>
+                </div>
+              </div>
+              <div class="text-[10.5px] text-neutral-500">Top spots: <span class="num">кофейня</span> ($21), <span class="num">Pret</span> ($7.30), <span class="num">Misc</span> ($2.97).</div>
+            </div>
+          </div>
+
+          <!-- user msg -->
+          <div class="flex justify-end">
+            <div class="bubble-user max-w-[80%] px-3 py-2 text-[12.5px]">
+              Show me what's pushing me over budget on Food
+            </div>
+          </div>
+          <!-- ai msg with table -->
+          <div class="flex">
+            <div class="bubble-ai max-w-[88%] px-3 py-2.5 text-[12.5px] space-y-2">
+              <div>Food is at <span class="num font-semibold">$312 / $300</span> (104%). Three rows account for 64% of the overage:</div>
+              <div class="bg-white border border-[#e5e5e5] rounded-md overflow-hidden">
+                <div class="grid grid-cols-[1fr_auto] gap-x-3 num text-[11px] divide-y divide-[#f0f0f1]">
+                  <div class="px-2.5 py-1.5">кофейня · split (3)</div><div class="px-2.5 py-1.5 text-right">−$10.74</div>
+                  <div class="px-2.5 py-1.5">groceries</div><div class="px-2.5 py-1.5 text-right">−$41.50</div>
+                  <div class="px-2.5 py-1.5">Купил кофе</div><div class="px-2.5 py-1.5 text-right">−$4.01</div>
+                </div>
+              </div>
+              <div class="text-[10.5px] text-neutral-500">Skipping coffee shops 2 days/week for the rest of May would bring you back under by ~$8.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Suggested prompts strip -->
+        <div class="absolute bottom-[60px] inset-x-0 px-4 pb-2 pt-2 bg-[#fafafa]/95 backdrop-blur border-t border-[#e5e5e5]">
+          <div class="flex gap-2 overflow-x-auto scrollx mb-2 -mx-1 px-1">
+            <span class="chip">forecast May end</span>
+            <span class="chip">savings rate vs Apr</span>
+            <span class="chip">where can I save $200/mo</span>
+            <span class="chip">last 30d transfers</span>
+          </div>
+          <div class="input flex items-end gap-2 px-3 py-2">
+            <textarea rows="1" class="bg-transparent flex-1 text-[12.5px] outline-none resize-none placeholder:text-neutral-400" placeholder="Ask anything about your finances…"></textarea>
+            <button class="w-7 h-7 grid place-items-center rounded-md text-[#fafafa]" style="background:#0a0a0a">
+              <svg class="ico-sm" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- nav -->
+        <div class="absolute bottom-0 inset-x-0 bg-[#fafafa]/95 backdrop-blur border-t border-[#e5e5e5] h-14 flex items-end justify-around pb-2 text-[10px] font-medium">
+          <a class="h-full flex flex-col items-center justify-end gap-1 text-neutral-500"><svg class="ico" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Home</span></a>
+          <a class="h-full flex flex-col items-center justify-end gap-1 text-neutral-500"><svg class="ico" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3.5" y1="6" x2="3.51" y2="6"/><line x1="3.5" y1="12" x2="3.51" y2="12"/><line x1="3.5" y1="18" x2="3.51" y2="18"/></svg><span>Tx</span></a>
+          <a class="h-full flex flex-col items-center justify-end gap-1 text-neutral-500"><svg class="ico" viewBox="0 0 24 24"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg><span>Budgets</span></a>
+          <a class="h-full flex flex-col items-center justify-end gap-1 text-neutral-500"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>Goals</span></a>
+          <a class="relative h-full flex flex-col items-center justify-end gap-1 nav-active"><svg class="ico" viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg><span>Ask</span></a>
+        </div>
+      </div>
+    </div>
+    <div class="text-[11px] text-neutral-600 leading-relaxed">Chat-style. User bubbles right (foreground), AI bubbles left (muted). AI answers can include inline mini-bar charts and small data tables, all monochrome. Suggested-prompt chips above the input. Composer at the bottom with a single primary send button.</div>
+  </div>
+
+  </div>
+</div>
+</body>
+</html>
