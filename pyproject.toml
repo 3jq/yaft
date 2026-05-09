@@ -45,3 +45,7 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/finance_app/bot/edit_card.py" = ["RUF001"]
+"tests/unit/test_edit_card.py" = ["RUF001"]
