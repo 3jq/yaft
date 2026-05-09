@@ -14,7 +14,9 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from openai import AsyncOpenAI
 
+from finance_app.analysis.qa_sql_tool import ReadOnlySQL
 from finance_app.api.routes import accounts as acc_routes
+from finance_app.api.routes import ask as ask_routes
 from finance_app.api.routes import budgets as bud_routes
 from finance_app.api.routes import categories as cat_routes
 from finance_app.api.routes import goals as goal_routes
@@ -24,7 +26,7 @@ from finance_app.api.routes import summary as sum_routes
 from finance_app.api.routes import transactions as tx_routes
 from finance_app.bot.auth import OwnerOnly
 from finance_app.bot.handlers.callbacks import handle_callback
-from finance_app.bot.handlers.commands import cmd_balance, cmd_help, cmd_list, cmd_start
+from finance_app.bot.handlers.commands import cmd_ask, cmd_balance, cmd_help, cmd_list, cmd_start
 from finance_app.bot.handlers.text import handle_text
 from finance_app.bot.handlers.voice import handle_voice
 from finance_app.config import get_settings
@@ -50,6 +52,7 @@ def make_app() -> FastAPI:
         api_key=settings.openrouter_api_key or "missing",
     )
     llm = OpenRouterClient(sdk=sdk)
+    read_only_sql = ReadOnlySQL(settings.db_url)
     if not settings.openrouter_api_key:
         log.warning(
             "OPENROUTER_API_KEY not set — voice and free-form text features will fail at runtime"
@@ -115,6 +118,9 @@ def make_app() -> FastAPI:
     fastapi_app = FastAPI(lifespan=lifespan)
     fastapi_app.state.engine = engine
     fastapi_app.state.session_maker = Session
+    fastapi_app.state.llm = llm
+    fastapi_app.state.read_only_sql = read_only_sql
+    fastapi_app.include_router(ask_routes.router)
     fastapi_app.include_router(tx_routes.router)
     fastapi_app.include_router(acc_routes.router)
     fastapi_app.include_router(cat_routes.router)
@@ -155,6 +161,11 @@ def make_app() -> FastAPI:
     async def _list(msg):
         async with Session() as s:
             await cmd_list(msg, s)
+
+    @dp.message(owner, Command("ask"))
+    async def _ask(msg):
+        async with Session() as s:
+            await cmd_ask(msg, s, llm=llm, db_url=settings.db_url)
 
     @dp.message(owner, F.text)
     async def _text(msg):

@@ -49,6 +49,20 @@ async def cmd_balance(msg: Message, session: AsyncSession) -> None:
         lines.append(f"• {a.name}: {format_amount(bal, ccy)}")
     await msg.answer("\n".join(lines) if lines else "No accounts.")
 
+async def cmd_ask(msg: Message, session: AsyncSession, *, llm, db_url: str) -> None:
+    text = (msg.text or "").removeprefix("/ask").strip()
+    if not text:
+        await msg.answer("Usage: /ask how much did I spend on food this month?")
+        return
+    from finance_app.analysis.qa_sql_tool import ReadOnlySQL, schema_text
+    ro = ReadOnlySQL(db_url)
+    try:
+        answer = await llm.ask_with_sql(text, schema_text=schema_text(), sql_runner=ro.run_sql)
+    finally:
+        await ro.aclose()
+    await msg.answer(answer or "(no answer)")
+
+
 async def cmd_list(msg: Message, session: AsyncSession) -> None:
     rows = (await session.execute(
         select(Transaction).where(Transaction.deleted_at.is_(None))
