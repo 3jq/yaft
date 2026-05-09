@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from finance_app.db.models import FxRate
 
-API = "https://api.exchangerate.host"
+API = "https://open.er-api.com/v6/latest"
 
 class FxService:
     def __init__(self, session: AsyncSession, *, http_client: httpx.AsyncClient | None = None):
@@ -25,11 +25,16 @@ class FxService:
         )).scalar_one_or_none()
         if row:
             return row.rate
-        # miss → fetch
+        # miss → fetch from open.er-api.com (free, no API key, "latest" only).
+        # We snapshot the rate on `on` even though the API returns "latest"; for
+        # historical dates this is a best-effort approximation. Phase 1 only ever
+        # asks for today's rate.
         try:
-            r = await self.http.get(f"{API}/{on.isoformat()}", params={"base": base})
+            r = await self.http.get(f"{API}/{base}")
             r.raise_for_status()
             data = r.json()
+            if data.get("result") != "success":
+                raise RuntimeError(data.get("error-type") or "fx api error")
             rates = data.get("rates") or {}
             for q, v in rates.items():
                 self.s.add(FxRate(date=on, base=base, quote=q, rate=float(v)))

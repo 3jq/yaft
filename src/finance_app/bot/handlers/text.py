@@ -34,8 +34,8 @@ async def handle_text(
     resolver = Resolver(session, fx)
     try:
         resolved = await resolver.resolve(parsed)
-    except ValueError:
-        await msg.answer("Couldn't resolve that transaction. Check the WebApp.")
+    except (ValueError, RuntimeError) as e:
+        await msg.answer(f"Couldn't resolve that transaction: {e}")
         return
     tx = await record(session, resolved, source="text",
                       source_ref=str(msg.message_id), raw_input=text)

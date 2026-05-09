@@ -16,8 +16,11 @@ async def fx(session):
 @respx.mock
 async def test_fetch_then_cache(fx, session):
     today = dt.date(2026, 5, 9)
-    respx.get("https://api.exchangerate.host/2026-05-09").mock(
-        return_value=httpx.Response(200, json={"base": "USD", "rates": {"EUR": 0.92, "AED": 3.67}})
+    respx.get("https://open.er-api.com/v6/latest/USD").mock(
+        return_value=httpx.Response(200, json={
+            "result": "success", "base_code": "USD",
+            "rates": {"EUR": 0.92, "AED": 3.67},
+        })
     )
     rate = await fx.get_rate(today, "USD", "EUR")
     assert abs(rate - 0.92) < 1e-9
@@ -34,7 +37,7 @@ async def test_same_currency_returns_one(fx):
 async def test_fallback_to_previous_cached_on_api_failure(fx, session):
     session.add(FxRate(date=dt.date(2026, 5, 8), base="USD", quote="EUR", rate=0.91))
     await session.commit()
-    respx.get("https://api.exchangerate.host/2026-05-09").mock(
+    respx.get("https://open.er-api.com/v6/latest/USD").mock(
         return_value=httpx.Response(500))
     rate = await fx.get_rate(dt.date(2026, 5, 9), "USD", "EUR")
     assert rate == 0.91

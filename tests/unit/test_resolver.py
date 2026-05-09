@@ -28,8 +28,10 @@ async def seeded(session):
 
 @respx.mock
 async def test_resolve_with_explicit_account_and_category(seeded):
-    respx.get("https://api.exchangerate.host/2026-05-09").mock(
-        return_value=httpx.Response(200, json={"base": "AED", "rates": {"USD": 0.272}}))
+    respx.get("https://open.er-api.com/v6/latest/AED").mock(
+        return_value=httpx.Response(200, json={
+            "result": "success", "base_code": "AED", "rates": {"USD": 0.272},
+        }))
     fx = FxService(seeded, http_client=httpx.AsyncClient())
     r = Resolver(seeded, fx)
     p = ParsedTransaction(kind="expense", amount=12.50, currency="AED",

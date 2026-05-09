@@ -28,8 +28,10 @@ async def seeded(session):
 
 @respx.mock
 async def test_text_message_records_and_replies(seeded):
-    respx.get("https://api.exchangerate.host/2026-05-09").mock(
-        return_value=httpx.Response(200, json={"base": "AED", "rates": {"USD": 0.272}}))
+    respx.get("https://open.er-api.com/v6/latest/AED").mock(
+        return_value=httpx.Response(200, json={
+            "result": "success", "base_code": "AED", "rates": {"USD": 0.272},
+        }))
     msg = MagicMock()
     msg.text = "12.50 AED lunch at Pret #lunch @revolut"
     msg.message_id = 99
