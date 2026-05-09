@@ -1,0 +1,6 @@
+node_modules/
+dist/
+*.tsbuildinfo
+# tsc -b emits .js alongside .tsx; vite handles transpilation, these are artifacts
+src/**/*.js
+src/**/*.d.ts

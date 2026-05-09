@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Geist fonts loaded via Google Fonts <link> in index.html
+   (geist npm package v1.3.x is a Next.js loader, no standalone CSS) */
+
+html, body, #root { height: 100%; }
+body {
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+}
+.num {
+  font-family: "Geist Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.label {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-foreground, #737373);
+  font-weight: 500;
+}
+.hr { height: 1px; background: #e5e5e5; }
+
+/* kill all focus halos on SVGs (donut/ring) */
+svg, svg * {
+  outline: none !important;
+  box-shadow: none !important;
+}
