@@ -110,3 +110,26 @@ async def test_resolve_splits_resolves_each_category(seeded):
     assert len(out.splits) == 2
     assert out.splits[0]["category_id"] == 1  # Food
     assert out.splits[0]["amount_minor"] == 3000
+
+
+async def test_resolve_drops_splits_when_sum_mismatches_total(seeded):
+    import datetime as dt
+
+    from finance_app.bot.parser_text import ParsedTransaction
+    from finance_app.domain.fx import FxService
+    from finance_app.pipeline.resolver import Resolver
+    fx = FxService(seeded)
+    r = Resolver(seeded, fx)
+    # Total is 40, but splits sum to 80 (the LLM included the total as a split — bug seen live)
+    p = ParsedTransaction(kind="expense", amount=40.0, currency="USD",
+                          account="cash",
+                          splits=[
+                              {"category": "Food", "amount": 30.0, "note": "a"},
+                              {"category": "Food", "amount": 10.0, "note": "b"},
+                              {"category": "Food", "amount": 40.0, "note": "double-counted"},
+                          ],
+                          occurred_at=dt.datetime(2026, 5, 9))
+    out = await r.resolve(p)
+    assert out.splits is None
+    assert any("don't match total" in a for a in out.ambiguities)
+    assert out.confidence < 1.0

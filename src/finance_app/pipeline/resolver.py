@@ -147,18 +147,31 @@ class Resolver:
                 ambiguities.append("transfer target not specified")
                 confidence *= 0.5
 
-        # Splits → resolve each leg's category in original currency
+        # Splits → resolve each leg's category in original currency.
+        # Sanity guard: if split amounts don't sum to the parent (within rounding), the LLM
+        # likely included the total as one of the splits. Drop the splits and fall back to a
+        # single-leg expense; flag the ambiguity.
         resolved_splits: list[dict] | None = None
         if p.splits:
-            resolved_splits = []
-            for s in p.splits:
-                cat_id_s, amb_s, _ = await self._resolve_category(s.get("category"), "expense")
-                ambiguities += amb_s
-                resolved_splits.append({
-                    "category_id": cat_id_s,
-                    "amount_minor": to_minor(s["amount"], currency),
-                    "note": s.get("note"),
-                })
+            split_minors = [to_minor(s["amount"], currency) for s in p.splits]
+            split_sum = sum(split_minors)
+            tolerance = max(2, amount_minor // 100)  # 1% or 2 minor units, whichever larger
+            if abs(split_sum - amount_minor) > tolerance:
+                ambiguities.append(
+                    f"split amounts ({split_sum}) don't match total ({amount_minor}); "
+                    "splits dropped — recorded as single line"
+                )
+                confidence *= 0.6
+            else:
+                resolved_splits = []
+                for s, m in zip(p.splits, split_minors, strict=True):
+                    cat_id_s, amb_s, _ = await self._resolve_category(s.get("category"), "expense")
+                    ambiguities += amb_s
+                    resolved_splits.append({
+                        "category_id": cat_id_s,
+                        "amount_minor": m,
+                        "note": s.get("note"),
+                    })
 
         return ResolvedTransaction(
             occurred_at=p.occurred_at or datetime.now(),
