@@ -14,7 +14,10 @@ from fastapi.staticfiles import StaticFiles
 from openai import AsyncOpenAI
 
 from finance_app.api.routes import accounts as acc_routes
+from finance_app.api.routes import budgets as bud_routes
 from finance_app.api.routes import categories as cat_routes
+from finance_app.api.routes import goals as goal_routes
+from finance_app.api.routes import recurring as rec_routes
 from finance_app.api.routes import settings as set_routes
 from finance_app.api.routes import summary as sum_routes
 from finance_app.api.routes import transactions as tx_routes
@@ -81,6 +84,9 @@ def make_app() -> FastAPI:
     fastapi_app.include_router(cat_routes.router)
     fastapi_app.include_router(sum_routes.router)
     fastapi_app.include_router(set_routes.router)
+    fastapi_app.include_router(bud_routes.router)
+    fastapi_app.include_router(goal_routes.router)
+    fastapi_app.include_router(rec_routes.router)
 
     WEBAPP_DIR = os.path.normpath(
         os.path.join(os.path.dirname(__file__), "..", "..", "webapp", "dist")
