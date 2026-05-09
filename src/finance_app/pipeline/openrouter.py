@@ -5,7 +5,7 @@ import json
 from dataclasses import dataclass
 from datetime import datetime
 from io import BytesIO
-from typing import Any
+from typing import Any, Awaitable, Callable
 
 from finance_app.bot.parser_text import ParsedTransaction, parsed_transaction_json_schema
 
@@ -150,3 +150,83 @@ class OpenRouterClient:
             confidence=float(data.get("confidence", 0.5)),
             ambiguities=list(data.get("ambiguities") or []),
         )
+
+    async def ask_with_sql(
+        self,
+        question: str,
+        *,
+        schema_text: str,
+        sql_runner: Callable[[str], Awaitable[list[dict]]],
+        max_iters: int = 4,
+        model: str | None = None,
+    ) -> str:
+        """Run a tool-using loop: LLM calls run_sql until it has an answer."""
+        qa_system = (
+            "You answer personal finance questions about a single user's SQLite database.\n"
+            "You have ONE tool, `run_sql`, that runs a read-only SELECT query and returns up to 1000 rows.\n"
+            "The schema is given. Money is stored as integer minor units (cents). Use base_amount_minor for"
+            " cross-currency totals.\n"
+            "Iterate: write a query, read results, refine, then answer concisely (one to three sentences)."
+            " Show concrete numbers.\n"
+            "Don't invent rows. If the data is empty, say so."
+        )
+        tools = [
+            {
+                "type": "function",
+                "function": {
+                    "name": "run_sql",
+                    "description": (
+                        "Run a read-only SELECT (or WITH ... SELECT) query against the SQLite db."
+                    ),
+                    "parameters": {
+                        "type": "object",
+                        "properties": {"query": {"type": "string"}},
+                        "required": ["query"],
+                    },
+                },
+            }
+        ]
+        messages: list[dict] = [
+            {"role": "system", "content": qa_system + "\n\nSchema:\n" + schema_text},
+            {"role": "user", "content": question},
+        ]
+        for _ in range(max_iters):
+            resp = await self._sdk.chat.completions.create(
+                model=model or self._parse_model,
+                messages=messages,
+                tools=tools,
+                temperature=0,
+            )
+            msg = resp.choices[0].message
+            tool_calls = getattr(msg, "tool_calls", None)
+            if tool_calls:
+                messages.append({
+                    "role": "assistant",
+                    "content": msg.content,
+                    "tool_calls": [
+                        {
+                            "id": tc.id,
+                            "type": "function",
+                            "function": {
+                                "name": tc.function.name,
+                                "arguments": tc.function.arguments,
+                            },
+                        }
+                        for tc in tool_calls
+                    ],
+                })
+                for tc in tool_calls:
+                    args = json.loads(tc.function.arguments)
+                    try:
+                        result = await sql_runner(args["query"])
+                        content = json.dumps(result, default=str)[:8000]
+                    except Exception as e:
+                        content = json.dumps({"error": str(e)})
+                    messages.append({
+                        "role": "tool",
+                        "tool_call_id": tc.id,
+                        "content": content,
+                    })
+                continue
+            return msg.content or ""
+        return "(stopped: too many iterations)"
