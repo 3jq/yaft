@@ -20,7 +20,7 @@ def render_card(
     base = ""
     if tx.currency != base_currency:
         base = f" (≈ {sign}{format_amount(tx.base_amount_minor, base_currency)})"
-    cat_line = f"{category_path.replace('/', ' / ')}" if category_path else "(no category)"
+    cat_line = category_path if category_path else "(no category)"
     when = tx.occurred_at.strftime("%Y-%m-%d %H:%M")
     warn = "⚠️ low confidence — please review\n" if (tx.confidence or 1.0) < 0.5 else ""
     note = f"\nnote: {tx.note}" if tx.note else ""

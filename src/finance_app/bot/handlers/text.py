@@ -32,7 +32,11 @@ async def handle_text(
 
     fx = FxService(session, http_client=http_client)
     resolver = Resolver(session, fx)
-    resolved = await resolver.resolve(parsed)
+    try:
+        resolved = await resolver.resolve(parsed)
+    except ValueError:
+        await msg.answer("Couldn't resolve that transaction. Check the WebApp.")
+        return
     tx = await record(session, resolved, source="text",
                       source_ref=str(msg.message_id), raw_input=text)
 

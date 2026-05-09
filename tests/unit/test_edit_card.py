@@ -23,7 +23,7 @@ def test_render_card_basic():
     text = render_card(
         tx,
         account_name="Revolut AED",
-        category_path="Food/Lunch",
+        category_path="Food / Lunch",
         base_currency="USD",
     )
     assert "−12.50 AED" in text

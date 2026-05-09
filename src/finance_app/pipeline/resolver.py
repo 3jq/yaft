@@ -118,6 +118,10 @@ class Resolver:
         confidence *= a_conf
 
         acct = await self.s.get(Account, account_id)
+        if acct is None:
+            raise ValueError(
+                f"default account id={account_id} not found; check the seed migration ran"
+            )
         currency = (p.currency or acct.currency).upper()
 
         cat_kind = p.kind if p.kind != "transfer" else "transfer"

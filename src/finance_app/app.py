@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+from contextlib import asynccontextmanager
 
 import httpx
 from aiogram import Bot, Dispatcher, F
@@ -23,18 +24,31 @@ def make_app() -> FastAPI:
     engine = make_engine(settings.db_url)
     Session = make_sessionmaker(engine)
 
-    fastapi_app = FastAPI()
+    bot = Bot(settings.bot_token)
+    dp = Dispatcher()
+    owner = OwnerOnly(settings.owner_tg_id)
+    http_client = httpx.AsyncClient(timeout=15.0)
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        log.info("startup", owner_tg_id=settings.owner_tg_id)
+        app.state.poll_task = asyncio.create_task(dp.start_polling(bot))
+        yield
+        log.info("shutdown")
+        app.state.poll_task.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await app.state.poll_task
+        await http_client.aclose()
+        await bot.session.close()
+        await engine.dispose()
+
+    fastapi_app = FastAPI(lifespan=lifespan)
     fastapi_app.state.engine = engine
     fastapi_app.state.session_maker = Session
 
     @fastapi_app.get("/healthz")
     async def healthz():
         return {"ok": True}
-
-    bot = Bot(settings.bot_token)
-    dp = Dispatcher()
-    owner = OwnerOnly(settings.owner_tg_id)
-    http_client = httpx.AsyncClient(timeout=15.0)
 
     @dp.message(owner, Command("start"))
     async def _start(msg):
@@ -63,21 +77,6 @@ def make_app() -> FastAPI:
     async def _cb(cb):
         async with Session() as s:
             await handle_callback(cb, s)
-
-    @fastapi_app.on_event("startup")
-    async def _startup() -> None:
-        log.info("startup", owner_tg_id=settings.owner_tg_id)
-        fastapi_app.state.poll_task = asyncio.create_task(dp.start_polling(bot))
-
-    @fastapi_app.on_event("shutdown")
-    async def _shutdown() -> None:
-        log.info("shutdown")
-        fastapi_app.state.poll_task.cancel()
-        with contextlib.suppress(asyncio.CancelledError):
-            await fastapi_app.state.poll_task
-        await http_client.aclose()
-        await bot.session.close()
-        await engine.dispose()
 
     return fastapi_app
 

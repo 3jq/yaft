@@ -24,6 +24,7 @@ async def handle_callback(cb: CallbackQuery, session: AsyncSession) -> None:
         tx = await session.get(Transaction, tx_id)
         if tx and tx.deleted_at is None:
             tx.deleted_at = dt.datetime.now(dt.UTC).replace(tzinfo=None)
+            tx.updated_at = dt.datetime.now(dt.UTC).replace(tzinfo=None)
             await session.commit()
         await cb.message.edit_text("🗑 Deleted (soft).")
         await cb.answer("Deleted")
