@@ -31,3 +31,8 @@ OpenRouter is accessed via the OpenAI Python SDK pointed at `https://openrouter.
 - Build: `cd webapp && npm install && npm run build` produces `webapp/dist/`, served by FastAPI at `/app/`.
 
 To expose the WebApp publicly without buying a domain: `sudo tailscale funnel --bg 8080`, then put the printed `https://<host>.ts.net` into `.env` as `PUBLIC_HTTPS_URL`. Restart the bot. Open it from Telegram via the bot's "Dashboard" menu button.
+
+## Phase 4 status
+- Budgets, savings goals, recurring rules live (domain + API + WebApp pages).
+- APScheduler runs in-process: hourly budget alerts (deduped per period/threshold), daily recurring materializer, daily FX prefetch, weekly digest skeleton.
+- Weekly digest is a placeholder; Phase 5 replaces it with an LLM narrative.
