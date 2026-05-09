@@ -1,0 +1,107 @@
+from __future__ import annotations
+
+import datetime as dt
+
+from aiogram import Bot
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import async_sessionmaker
+
+from finance_app.db.models import Account, Category, Setting, Transaction
+from finance_app.domain.budgets import due_alerts, mark_fired, month_window
+from finance_app.domain.fx import FxService
+from finance_app.domain.money import format_amount
+from finance_app.domain.rrule import materialize_due
+from finance_app.logging_setup import log
+
+
+async def materialize_recurring(Session: async_sessionmaker) -> int:
+    """Materialize any recurring transactions that are due today."""
+    async with Session() as s:
+        n = await materialize_due(s, today=dt.date.today())
+    log.info("scheduler.materialize_recurring", count=n)
+    return n
+
+
+async def check_budget_alerts(Session: async_sessionmaker, *, bot: Bot, owner_id: int) -> int:
+    """Check for budget threshold breaches and send Telegram alerts."""
+    n = 0
+    async with Session() as s:
+        alerts = await due_alerts(s, dt.date.today())
+        for a in alerts:
+            cat = await s.get(Category, a.category_id)
+            cat_name = cat.name if cat else f"category#{a.category_id}"
+            try:
+                await bot.send_message(
+                    owner_id,
+                    f"⚠️ Budget alert · {cat_name}\n"
+                    f"Spent {format_amount(a.spent_minor, 'USD')} of "
+                    f"{format_amount(a.budget_minor, 'USD')} ({a.threshold * 100:.0f}% threshold)",
+                )
+                await mark_fired(s, a.budget_id, dt.date.today(), a.threshold)
+                n += 1
+            except Exception as exc:
+                log.warning("scheduler.budget_alert.send_failed", error=str(exc))
+        await s.commit()
+    log.info("scheduler.check_budget_alerts", sent=n)
+    return n
+
+
+async def fetch_fx_rates(Session: async_sessionmaker) -> int:
+    """Fetch FX rates for all currencies currently in use."""
+    today = dt.date.today()
+    n = 0
+    async with Session() as s:
+        rows = (await s.execute(select(Account.currency).distinct())).scalars().all()
+        if not rows:
+            return 0
+        # Determine base currency from settings, default to USD
+        setting_row = (
+            await s.execute(select(Setting).where(Setting.key == "base_currency"))
+        ).scalar_one_or_none()
+        base = setting_row.value if setting_row else "USD"
+        fx = FxService(s)
+        for ccy in rows:
+            if ccy.upper() == base.upper():
+                continue
+            try:
+                await fx.get_rate(today, base, ccy)
+                n += 1
+            except Exception as exc:
+                log.warning("scheduler.fetch_fx_rates.failed", currency=ccy, error=str(exc))
+    log.info("scheduler.fetch_fx_rates", fetched=n)
+    return n
+
+
+async def weekly_digest_skeleton(Session: async_sessionmaker, *, bot: Bot, owner_id: int) -> None:
+    """Send a basic month-to-date digest. Phase 5 will replace with LLM narrative."""
+    today = dt.date.today()
+    async with Session() as s:
+        start, end = month_window(today)
+        rows = (
+            await s.execute(
+                select(Transaction).where(
+                    Transaction.deleted_at.is_(None),
+                    Transaction.occurred_at >= start,
+                    Transaction.occurred_at < end,
+                )
+            )
+        ).scalars().all()
+        spent = sum(t.base_amount_minor for t in rows if t.kind == "expense")
+        income = sum(t.base_amount_minor for t in rows if t.kind == "income")
+
+        # Determine display currency from settings
+        setting_row = (
+            await s.execute(select(Setting).where(Setting.key == "base_currency"))
+        ).scalar_one_or_none()
+        ccy = setting_row.value if setting_row else "USD"
+
+    try:
+        await bot.send_message(
+            owner_id,
+            f"\U0001f4ca Weekly digest\n"
+            f"Month-to-date income: {format_amount(income, ccy)}\n"
+            f"Month-to-date expense: {format_amount(spent, ccy)}",
+        )
+    except Exception as exc:
+        log.warning("scheduler.weekly_digest.send_failed", error=str(exc))
+    log.info("scheduler.weekly_digest_skeleton", income=income, spent=spent)

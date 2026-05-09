@@ -15,6 +15,7 @@ dependencies = [
   "openai>=1.50",
   "python-dateutil>=2.9",
   "tzdata>=2024.2",
+  "apscheduler>=3.10",
 ]
 
 [project.optional-dependencies]

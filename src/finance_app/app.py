@@ -9,6 +9,7 @@ import httpx
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import Command
 from aiogram.types import MenuButtonWebApp, WebAppInfo
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from openai import AsyncOpenAI
@@ -30,6 +31,7 @@ from finance_app.config import get_settings
 from finance_app.db.session import make_engine, make_sessionmaker
 from finance_app.logging_setup import configure_logging, log
 from finance_app.pipeline.openrouter import OpenRouterClient
+from finance_app.scheduler import jobs as scheduler_jobs
 
 
 def make_app() -> FastAPI:
@@ -53,6 +55,9 @@ def make_app() -> FastAPI:
             "OPENROUTER_API_KEY not set — voice and free-form text features will fail at runtime"
         )
 
+    tz = getattr(settings, "timezone", "UTC") or "UTC"
+    scheduler = AsyncIOScheduler(timezone=tz)
+
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         log.info("startup", owner_tg_id=settings.owner_tg_id)
@@ -67,8 +72,39 @@ def make_app() -> FastAPI:
                 )
             except Exception as e:
                 log.warning("set_chat_menu_button failed", error=str(e))
+        # Bootstrap APScheduler jobs — non-fatal if any add_job fails
+        try:
+            scheduler.add_job(
+                scheduler_jobs.materialize_recurring, "cron",
+                hour=0, minute=5, args=[Session],
+                id="materialize_recurring", replace_existing=True,
+            )
+            scheduler.add_job(
+                scheduler_jobs.check_budget_alerts, "cron",
+                minute=0, args=[Session],
+                kwargs={"bot": bot, "owner_id": settings.owner_tg_id},
+                id="budget_alerts", replace_existing=True,
+            )
+            scheduler.add_job(
+                scheduler_jobs.fetch_fx_rates, "cron",
+                hour=6, minute=0, args=[Session],
+                id="fx", replace_existing=True,
+            )
+            scheduler.add_job(
+                scheduler_jobs.weekly_digest_skeleton, "cron",
+                day_of_week="sun", hour=9, args=[Session],
+                kwargs={"bot": bot, "owner_id": settings.owner_tg_id},
+                id="digest", replace_existing=True,
+            )
+            scheduler.start()
+            app.state.scheduler = scheduler
+            log.info("scheduler.started", jobs=len(scheduler.get_jobs()))
+        except Exception as exc:
+            log.warning("scheduler.start_failed", error=str(exc))
         yield
         log.info("shutdown")
+        if getattr(app.state, "scheduler", None):
+            app.state.scheduler.shutdown(wait=False)
         app.state.poll_task.cancel()
         with contextlib.suppress(asyncio.CancelledError):
             await app.state.poll_task
