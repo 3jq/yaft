@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import os
 from contextlib import asynccontextmanager
 
 import httpx
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import Command
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from openai import AsyncOpenAI
 
 from finance_app.api.routes import accounts as acc_routes
@@ -68,6 +70,16 @@ def make_app() -> FastAPI:
     fastapi_app.include_router(cat_routes.router)
     fastapi_app.include_router(sum_routes.router)
     fastapi_app.include_router(set_routes.router)
+
+    WEBAPP_DIR = os.path.normpath(
+        os.path.join(os.path.dirname(__file__), "..", "..", "webapp", "dist")
+    )
+    if os.path.isdir(WEBAPP_DIR):
+        fastapi_app.mount(
+            "/app",
+            StaticFiles(directory=WEBAPP_DIR, html=True),
+            name="webapp",
+        )
 
     @fastapi_app.get("/healthz")
     async def healthz():
