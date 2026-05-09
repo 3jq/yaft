@@ -8,6 +8,7 @@ from io import BytesIO
 from typing import Any, Awaitable, Callable
 
 from finance_app.bot.parser_text import ParsedTransaction, parsed_transaction_json_schema
+from finance_app.logging_setup import log
 
 
 @dataclass
@@ -187,6 +188,16 @@ class OpenRouterClient:
             "  Compute periods explicitly with date arithmetic in SQL.\n"
             "- Length: as long as needed to give real advice. Short for narrow factual questions; "
             "  several sentences with concrete recommendations for open ones. No markdown headers.\n"
+            "\n"
+            "SQL idioms for this DB (sqlite, occurred_at is ISO datetime text, dates compare lexicographically):\n"
+            "- ALWAYS filter active rows: `WHERE deleted_at IS NULL`. Soft-deleted rows must be excluded.\n"
+            "- Last 30 days: `occurred_at >= datetime('now', '-30 days')`. Last 90: `'-90 days'`.\n"
+            "- Current calendar month: `occurred_at >= date('now', 'start of month')`.\n"
+            "- Top-level category for a row: walk `categories.parent_id` to NULL. Use a recursive CTE if needed.\n"
+            "- Net worth = sum of `accounts.opening_balance_minor` plus +income/+transfer_in and "
+            "  -expense/-transfer_out from non-deleted transactions on non-archived accounts.\n"
+            "- If your first query returns 0 rows when you expect data, retry without the filter you just "
+            "  added — confirm the table actually is non-empty before concluding 'no data'.\n"
         )
         if context_text:
             qa_system += "\nContext (authoritative — don't query for these):\n" + context_text
@@ -237,11 +248,18 @@ class OpenRouterClient:
                 })
                 for tc in tool_calls:
                     args = json.loads(tc.function.arguments)
+                    query = args.get("query", "")
                     try:
-                        result = await sql_runner(args["query"])
+                        result = await sql_runner(query)
                         content = json.dumps(result, default=str)[:8000]
+                        log.info(
+                            "ask.sql",
+                            query=query,
+                            rows=len(result) if isinstance(result, list) else None,
+                        )
                     except Exception as e:
                         content = json.dumps({"error": str(e)})
+                        log.warning("ask.sql.error", query=query, error=str(e))
                     messages.append({
                         "role": "tool",
                         "tool_call_id": tc.id,
