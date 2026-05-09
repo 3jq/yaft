@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { api, Tx } from "@/lib/api";
+import { api, Tx, ForecastResponse } from "@/lib/api";
 import { formatBase, formatAmount } from "@/lib/money";
 import { Hr } from "@/components/Section";
 import { Sparkbar } from "@/components/Sparkbar";
@@ -46,6 +46,7 @@ export default function Home() {
   const txQuery = useQuery({ queryKey: ["transactions"], queryFn: () => api.listTransactions(false) });
   const goalsQuery = useQuery({ queryKey: ["goal-progress"], queryFn: api.goalProgress });
   const nwSeries = useQuery({ queryKey: ["nw-series", 30], queryFn: () => api.getNetworthSeries(30) });
+  const forecastQuery = useQuery({ queryKey: ["forecast"], queryFn: api.getForecast });
 
   if (summary.isLoading || txQuery.isLoading) {
     return <div className="p-5 label">Loading…</div>;
@@ -220,6 +221,12 @@ export default function Home() {
       </div>
 
       <Hr />
+
+      {/* ── FORECAST ────────────────────────────────────────────────────────── */}
+      {forecastQuery.data && (
+        <ForecastStrip fc={forecastQuery.data} base={s.base_currency} />
+      )}
+      {forecastQuery.data && <Hr />}
 
       {/* ── KPI strip ───────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-3 px-5 py-3.5 text-center divide-x divide-[#e5e5e5]">
@@ -449,6 +456,49 @@ export default function Home() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// ── Forecast strip ────────────────────────────────────────────────────────────
+
+function ForecastStrip({ fc, base }: { fc: ForecastResponse; base: string }) {
+  const eomSign = fc.eom_net_minor >= 0 ? "+" : "";
+  const avgSign = fc.avg_daily_minor >= 0 ? "+" : "";
+
+  // Soonest days_to_goal entry (smallest positive value)
+  const goalEntries = Object.values(fc.days_to_goal).filter(
+    (v): v is number => v !== null && v > 0
+  );
+  const soonestDays = goalEntries.length > 0 ? Math.min(...goalEntries) : null;
+
+  return (
+    <div>
+      <div className="grid grid-cols-3 px-5 py-3.5 text-center divide-x divide-[#e5e5e5]">
+        <div>
+          <div className="label">EOM est.</div>
+          <div className={`num text-[13px] font-medium mt-1 ${fc.eom_net_minor < 0 ? "text-neutral-500" : ""}`}>
+            {eomSign}{formatBase(Math.abs(fc.eom_net_minor), base)}
+          </div>
+        </div>
+        <div>
+          <div className="label">Runway</div>
+          <div className="num text-[13px] font-medium mt-1">
+            {fc.runway_months !== null ? `~${fc.runway_months.toFixed(1)} mo` : "—"}
+          </div>
+        </div>
+        <div>
+          <div className="label">Avg daily</div>
+          <div className={`num text-[13px] font-medium mt-1 ${fc.avg_daily_minor < 0 ? "text-neutral-500" : ""}`}>
+            {avgSign}{formatBase(Math.abs(fc.avg_daily_minor), base)}
+          </div>
+        </div>
+      </div>
+      {soonestDays !== null && (
+        <div className="px-5 pb-3 text-center num text-[10px] text-neutral-400">
+          Soonest goal: ~{soonestDays}d away
+        </div>
+      )}
     </div>
   );
 }

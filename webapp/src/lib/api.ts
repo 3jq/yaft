@@ -119,6 +119,18 @@ export type Recurring = {
   active: number;
 };
 
+export type AskResponse = {
+  answer: string;
+};
+
+export type ForecastResponse = {
+  avg_daily_minor: number;
+  eom_net_minor: number;
+  runway_months: number | null;
+  days_to_goal: Record<string, number | null>;
+  month_label: string;
+};
+
 export const api = {
   // transactions
   listTransactions: (includeDeleted = false) =>
@@ -176,6 +188,11 @@ export const api = {
   archiveGoal: (id: number) =>
     req<void>(`/goals/${id}/archive`, { method: "POST" }),
   goalProgress: () => req<GoalProgress[]>("/goals/progress"),
+
+  // ai
+  ask: (question: string) =>
+    req<AskResponse>("/ask", { method: "POST", body: JSON.stringify({ question }) }),
+  getForecast: () => req<ForecastResponse>("/forecast"),
 
   // recurring
   listRecurring: () => req<Recurring[]>("/recurring"),
