@@ -75,10 +75,24 @@ async def cmd_ask(msg: Message, session: AsyncSession, *, llm, db_url: str) -> N
     if not text:
         await msg.answer("Usage: /ask how much did I spend on food this month?")
         return
+    import datetime as dt
     from finance_app.analysis.qa_sql_tool import ReadOnlySQL, schema_text
+    from finance_app.db.models import Setting
+    settings_rows = (await session.execute(select(Setting))).scalars().all()
+    settings_map = {r.key: r.value for r in settings_rows}
+    context_text = (
+        f"base_currency: {settings_map.get('base_currency', 'USD')}\n"
+        f"timezone: {settings_map.get('timezone', 'UTC')}\n"
+        f"today: {dt.date.today().isoformat()}\n"
+    )
     ro = ReadOnlySQL(db_url)
     try:
-        answer = await llm.ask_with_sql(text, schema_text=schema_text(), sql_runner=ro.run_sql)
+        answer = await llm.ask_with_sql(
+            text,
+            schema_text=schema_text(),
+            sql_runner=ro.run_sql,
+            context_text=context_text,
+        )
     finally:
         await ro.aclose()
     await msg.answer(answer or "(no answer)")

@@ -157,6 +157,7 @@ class OpenRouterClient:
         *,
         schema_text: str,
         sql_runner: Callable[[str], Awaitable[list[dict]]],
+        context_text: str = "",
         max_iters: int = 4,
         model: str | None = None,
     ) -> str:
@@ -164,12 +165,17 @@ class OpenRouterClient:
         qa_system = (
             "You answer personal finance questions about a single user's SQLite database.\n"
             "You have ONE tool, `run_sql`, that runs a read-only SELECT query and returns up to 1000 rows.\n"
-            "The schema is given. Money is stored as integer minor units (cents). Use base_amount_minor for"
-            " cross-currency totals.\n"
+            "The schema is given. Money is stored as integer minor units (cents).\n"
+            "All `base_amount_minor` values are denominated in the user's base_currency (see Context). "
+            "When you state a total derived from `base_amount_minor`, label it with the base currency.\n"
+            "When showing category or account names in your answer, use them verbatim from the database "
+            "(don't alter casing or punctuation).\n"
             "Iterate: write a query, read results, refine, then answer concisely (one to three sentences)."
-            " Show concrete numbers.\n"
+            " Show concrete numbers with the appropriate currency code.\n"
             "Don't invent rows. If the data is empty, say so."
         )
+        if context_text:
+            qa_system += "\n\nContext (authoritative — don't query for these):\n" + context_text
         tools = [
             {
                 "type": "function",
