@@ -6,7 +6,14 @@ import App from "./App";
 import "./index.css";
 
 const qc = new QueryClient({
-  defaultOptions: { queries: { staleTime: 30_000, refetchOnWindowFocus: false } },
+  defaultOptions: {
+    queries: {
+      staleTime: 5_000,
+      refetchOnWindowFocus: true,
+      refetchInterval: 10_000,         // poll so bot-created tx appear without manual reload
+      refetchIntervalInBackground: false,
+    },
+  },
 });
 
 ReactDOM.createRoot(document.getElementById("root")!).render(

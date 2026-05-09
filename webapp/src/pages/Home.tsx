@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { api, Tx } from "@/lib/api";
 import { formatBase, formatAmount } from "@/lib/money";
 import { Hr } from "@/components/Section";
@@ -40,8 +41,9 @@ function sym(c: string): string {
 // ── component ────────────────────────────────────────────────────────────────
 
 export default function Home() {
-  const summary = useQuery({ queryKey: ["summary"], queryFn: api.getSummary, staleTime: 30_000 });
-  const txQuery = useQuery({ queryKey: ["transactions"], queryFn: () => api.listTransactions(false), staleTime: 30_000 });
+  const nav = useNavigate();
+  const summary = useQuery({ queryKey: ["summary"], queryFn: api.getSummary });
+  const txQuery = useQuery({ queryKey: ["transactions"], queryFn: () => api.listTransactions(false) });
 
   if (summary.isLoading || txQuery.isLoading) {
     return <div className="p-5 label">Loading…</div>;
@@ -152,12 +154,18 @@ export default function Home() {
             className="text-[#737373] grid place-items-center w-7 h-7"
             style={{ outline: "none" }}
             aria-label="Search"
+            onClick={() => nav("/transactions")}
           >
             <Search size={18} strokeWidth={1.75} />
           </button>
-          <div className="w-7 h-7 rounded-full border border-[#e5e5e5] grid place-items-center text-[11px] font-medium">
+          <button
+            className="w-7 h-7 rounded-full border border-[#e5e5e5] grid place-items-center text-[11px] font-medium"
+            style={{ outline: "none" }}
+            aria-label="Settings"
+            onClick={() => nav("/settings")}
+          >
             A
-          </div>
+          </button>
         </div>
       </div>
 
@@ -225,7 +233,7 @@ export default function Home() {
       <div className="px-5 py-5">
         <div className="flex items-center justify-between mb-4">
           <div className="label">Categories</div>
-          <a className="text-[11px] text-[#525252] border-b border-[#d4d4d4] pb-px cursor-pointer">all →</a>
+          <a className="text-[11px] text-[#525252] border-b border-[#d4d4d4] pb-px cursor-pointer" onClick={() => nav("/categories")}>all →</a>
         </div>
         <div className="grid gap-5 items-center" style={{ gridTemplateColumns: "auto 1fr" }}>
           <div className="relative" style={{ outline: "none" }}>
@@ -297,7 +305,7 @@ export default function Home() {
       <div className="px-5 py-5">
         <div className="flex items-center justify-between mb-3">
           <div className="label">Accounts</div>
-          <a className="text-[11px] text-[#525252] border-b border-[#d4d4d4] pb-px cursor-pointer">manage →</a>
+          <a className="text-[11px] text-[#525252] border-b border-[#d4d4d4] pb-px cursor-pointer" onClick={() => nav("/accounts")}>manage →</a>
         </div>
         <div
           className="grid gap-2"
@@ -307,8 +315,9 @@ export default function Home() {
             const { whole, frac } = fmtBalanceWhole(acct.balance_minor, acct.currency);
             const currSym = sym(acct.currency);
             return (
-              <div
+              <button
                 key={acct.account_id}
+                onClick={() => nav("/accounts")}
                 style={{
                   border: "1px solid #e5e5e5",
                   borderRadius: 8,
@@ -317,6 +326,8 @@ export default function Home() {
                   flexDirection: "column",
                   gap: 4,
                   background: "#fff",
+                  textAlign: "left",
+                  outline: "none",
                 }}
               >
                 <div className="flex items-baseline justify-between">
@@ -342,7 +353,7 @@ export default function Home() {
                 </div>
                 {/* TODO: Phase 4 — real 30-day delta */}
                 <div className="num text-[10px] text-neutral-500">+$0 / 30d</div>
-              </div>
+              </button>
             );
           })}
         </div>
@@ -355,7 +366,7 @@ export default function Home() {
       <div className="px-5 py-5 mb-2">
         <div className="flex items-center justify-between mb-3">
           <div className="label">Goals</div>
-          <a className="text-[11px] text-[#525252] border-b border-[#d4d4d4] pb-px cursor-pointer">+ new</a>
+          <a className="text-[11px] text-[#525252] border-b border-[#d4d4d4] pb-px cursor-pointer" onClick={() => nav("/goals")}>+ new</a>
         </div>
         <div className="flex items-center gap-3">
           {/* 56px monochrome ring — 32% progress */}
@@ -418,6 +429,7 @@ export default function Home() {
 // ── Transaction row ───────────────────────────────────────────────────────────
 
 function TxRow({ tx, base }: { tx: Tx; base: string }) {
+  const nav = useNavigate();
   const title = tx.note || tx.merchant || "—";
   const time = fmtTime(tx.occurred_at);
 
@@ -441,7 +453,8 @@ function TxRow({ tx, base }: { tx: Tx; base: string }) {
 
   return (
     <div
-      className="px-2 py-2 rounded-md"
+      className="px-2 py-2 rounded-md cursor-pointer hover:bg-muted"
+      onClick={() => nav(`/transactions/${tx.id}`)}
       style={{
         display: "grid",
         gridTemplateColumns: "1fr auto",
