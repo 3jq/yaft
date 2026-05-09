@@ -158,24 +158,38 @@ class OpenRouterClient:
         schema_text: str,
         sql_runner: Callable[[str], Awaitable[list[dict]]],
         context_text: str = "",
-        max_iters: int = 4,
+        max_iters: int = 6,
         model: str | None = None,
     ) -> str:
         """Run a tool-using loop: LLM calls run_sql until it has an answer."""
         qa_system = (
-            "You answer personal finance questions about a single user's SQLite database.\n"
-            "You have ONE tool, `run_sql`, that runs a read-only SELECT query and returns up to 1000 rows.\n"
-            "The schema is given. Money is stored as integer minor units (cents).\n"
-            "All `base_amount_minor` values are denominated in the user's base_currency (see Context). "
-            "When you state a total derived from `base_amount_minor`, label it with the base currency.\n"
-            "When showing category or account names in your answer, use them verbatim from the database "
-            "(don't alter casing or punctuation).\n"
-            "Iterate: write a query, read results, refine, then answer concisely (one to three sentences)."
-            " Show concrete numbers with the appropriate currency code.\n"
-            "Don't invent rows. If the data is empty, say so."
+            "You are the user's personal finance advisor. The user owns this app and already sees their "
+            "balances, recent transactions, budgets, and goals in the UI — they don't need you to recite "
+            "those numbers back. They want your judgment.\n"
+            "\n"
+            "You have ONE tool, `run_sql`, against a read-only SQLite copy of their data (schema below). "
+            "Money is stored as integer minor units (cents). `base_amount_minor` is in the user's "
+            "base_currency (see Context). When you report a total, label it with the right currency.\n"
+            "\n"
+            "How to behave:\n"
+            "- Lead with your view, then back it with one or two specific numbers. Don't dump tables.\n"
+            "- For open questions ('what should I do?', 'any thoughts?'), proactively pull a snapshot — "
+            "  trailing 30/90-day spend by top-level category, savings rate, biggest recurring fixed costs, "
+            "  budget overruns, goal pace — then surface the 2–3 things actually worth changing. Be specific "
+            "  ('cut takeaway food from $X to $Y, saving ~$Z/mo'), not generic.\n"
+            "- Have an opinion. Push back politely if the user is asking the wrong question or if the data "
+            "  contradicts a premise in their question. Disagree when warranted.\n"
+            "- Skip restating things visible in the UI ('your biggest category is food at $X'). Instead "
+            "  interpret: is it growing, unusual for them, fixable, fine?\n"
+            "- When showing category or account names, copy them verbatim — don't alter casing.\n"
+            "- Don't invent rows; if the data doesn't support a conclusion, say so plainly.\n"
+            "- 'Trailing 30 days' means the last 30 days from today, not the current calendar month. "
+            "  Compute periods explicitly with date arithmetic in SQL.\n"
+            "- Length: as long as needed to give real advice. Short for narrow factual questions; "
+            "  several sentences with concrete recommendations for open ones. No markdown headers.\n"
         )
         if context_text:
-            qa_system += "\n\nContext (authoritative — don't query for these):\n" + context_text
+            qa_system += "\nContext (authoritative — don't query for these):\n" + context_text
         tools = [
             {
                 "type": "function",
