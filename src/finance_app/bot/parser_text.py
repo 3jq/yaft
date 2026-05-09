@@ -47,3 +47,39 @@ def parse_text(text: str) -> ParsedTransaction:
         kind=kind, amount=amount, currency=currency,
         account=acc, category=cat, note=note, occurred_at=datetime.now(),
     )
+
+def parsed_transaction_json_schema() -> dict:
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "required": [
+            "kind","occurred_at","amount","currency","account","category",
+            "merchant","note","transfer_to_account","splits","confidence","ambiguities",
+        ],
+        "properties": {
+            "kind": {"type": "string", "enum": ["expense", "income", "transfer"]},
+            "occurred_at": {"type": "string", "format": "date-time"},
+            "amount": {"type": "number"},
+            "currency": {"type": ["string", "null"], "minLength": 3, "maxLength": 3},
+            "account": {"type": ["string", "null"]},
+            "category": {"type": ["string", "null"]},
+            "merchant": {"type": ["string", "null"]},
+            "note": {"type": ["string", "null"]},
+            "transfer_to_account": {"type": ["string", "null"]},
+            "splits": {
+                "type": ["array", "null"],
+                "items": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "required": ["category", "amount", "note"],
+                    "properties": {
+                        "category": {"type": "string"},
+                        "amount": {"type": "number"},
+                        "note": {"type": ["string", "null"]},
+                    },
+                },
+            },
+            "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+            "ambiguities": {"type": "array", "items": {"type": "string"}},
+        },
+    }
