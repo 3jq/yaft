@@ -17,6 +17,7 @@ from finance_app.pipeline.record import record
 from finance_app.pipeline.resolver import Resolver
 
 _FASTPATH = re.compile(r"^\s*[+-]?\d+(?:[.,]\d+)?\s*[A-Za-z]{0,3}\b")
+_AMBIGUOUS_KW = re.compile(r"\b(transfer|перевел|перевёл|split)\b", re.IGNORECASE)
 
 _PARSE_ERR = "Couldn't parse that into a transaction. Try the WebApp to add manually."
 
@@ -32,7 +33,7 @@ async def handle_text(
     text = (msg.text or "").strip()
 
     parsed = None
-    if _FASTPATH.match(text):
+    if _FASTPATH.match(text) and not _AMBIGUOUS_KW.search(text):
         try:
             parsed = parse_text(text)
         except ValueError:

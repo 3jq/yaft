@@ -47,7 +47,10 @@ async def record(
     if r.splits:
         legs: list[Transaction] = []
         for s in r.splits:
-            base_minor = round(r.base_amount_minor * (s["amount_minor"] / r.amount_minor))
+            if r.amount_minor == 0:
+                base_minor = s["amount_minor"]
+            else:
+                base_minor = round(r.base_amount_minor * (s["amount_minor"] / r.amount_minor))
             legs.append(Transaction(
                 group_id=group_id, occurred_at=r.occurred_at,
                 account_id=r.account_id, category_id=s["category_id"], kind=r.kind,

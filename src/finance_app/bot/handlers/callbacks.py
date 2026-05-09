@@ -4,6 +4,7 @@ import datetime as dt
 
 import httpx
 from aiogram.types import CallbackQuery
+from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from finance_app.bot.edit_card import build_keyboard, render_card
@@ -37,8 +38,15 @@ async def handle_callback(
         tx = await session.get(Transaction, tx_id)
         if tx and tx.deleted_at is None:
             now = dt.datetime.now(dt.UTC).replace(tzinfo=None)
-            tx.deleted_at = now
-            tx.updated_at = now
+            if tx.group_id:
+                await session.execute(
+                    update(Transaction)
+                    .where(Transaction.group_id == tx.group_id, Transaction.deleted_at.is_(None))
+                    .values(deleted_at=now, updated_at=now)
+                )
+            else:
+                tx.deleted_at = now
+                tx.updated_at = now
             await session.commit()
         await cb.message.edit_text("🗑 Deleted (soft).")
         await cb.answer("Deleted")
@@ -58,10 +66,18 @@ async def handle_callback(
         except Exception:
             await cb.answer("Re-parse failed", show_alert=True)
             return
-        # Soft-delete old
+        # Soft-delete the old transaction and any siblings that share its group_id
+        # (transfer pairs, split legs).
         now = dt.datetime.now(dt.UTC).replace(tzinfo=None)
-        old.deleted_at = now
-        old.updated_at = now
+        if old.group_id:
+            await session.execute(
+                update(Transaction)
+                .where(Transaction.group_id == old.group_id, Transaction.deleted_at.is_(None))
+                .values(deleted_at=now, updated_at=now)
+            )
+        else:
+            old.deleted_at = now
+            old.updated_at = now
         await session.commit()
         # Record new
         fx = FxService(session, http_client=http_client)

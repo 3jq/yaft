@@ -110,3 +110,37 @@ async def test_callback_retry_reparses(with_voice_tx):
     assert any(t.deleted_at is not None and t.id == 10 for t in rows)
     assert any(t.deleted_at is None and t.amount_minor == 2500 for t in rows)
     llm.parse_transaction.assert_called_once()
+
+
+@pytest.fixture
+async def with_transfer(session):
+    session.add_all([
+        Currency(code="USD", name="USD"),
+        Account(id=1, name="Cash", kind="cash", currency="USD"),
+        Account(id=2, name="Revolut", kind="bank", currency="USD"),
+        Setting(key="base_currency", value="USD"),
+        Transaction(id=20, group_id="grp1", occurred_at=dt.datetime(2026, 5, 9),
+                    account_id=1, kind="transfer_out",
+                    amount_minor=50000, currency="USD",
+                    base_amount_minor=50000, fx_rate=1.0,
+                    source="text", raw_input="t"),
+        Transaction(id=21, group_id="grp1", occurred_at=dt.datetime(2026, 5, 9),
+                    account_id=2, kind="transfer_in",
+                    amount_minor=50000, currency="USD",
+                    base_amount_minor=50000, fx_rate=1.0,
+                    source="text", raw_input="t"),
+    ])
+    await session.commit()
+    return session
+
+
+async def test_callback_delete_soft_deletes_both_transfer_legs(with_transfer):
+    cb = MagicMock()
+    cb.data = "tx:del:20"
+    cb.message.edit_text = AsyncMock()
+    cb.answer = AsyncMock()
+    await handle_callback(cb, with_transfer)
+    out_leg = await with_transfer.get(Transaction, 20)
+    in_leg = await with_transfer.get(Transaction, 21)
+    assert out_leg.deleted_at is not None
+    assert in_leg.deleted_at is not None

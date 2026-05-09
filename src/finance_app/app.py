@@ -37,6 +37,10 @@ def make_app() -> FastAPI:
         api_key=settings.openrouter_api_key or "missing",
     )
     llm = OpenRouterClient(sdk=sdk)
+    if not settings.openrouter_api_key:
+        log.warning(
+            "OPENROUTER_API_KEY not set — voice and free-form text features will fail at runtime"
+        )
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):

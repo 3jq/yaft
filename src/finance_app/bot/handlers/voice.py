@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime as dt
 from io import BytesIO
+from zoneinfo import ZoneInfo
 
 import httpx
 from aiogram import Bot
@@ -31,8 +32,12 @@ async def _build_context(session: AsyncSession) -> ParseContext:
     cats = [c.name for c in (await session.execute(
         select(Category).where(Category.parent_id.is_(None), Category.archived == 0)
     )).scalars().all()]
+    try:
+        now_local = dt.datetime.now(ZoneInfo(tz))
+    except Exception:
+        now_local = dt.datetime.now(dt.UTC)
     return ParseContext(
-        now_iso=dt.datetime.now().isoformat(), timezone=tz,
+        now_iso=now_local.isoformat(), timezone=tz,
         base_currency=base, accounts=accs, top_categories=cats,
     )
 
@@ -56,7 +61,7 @@ async def handle_voice(
     try:
         transcript = await llm.transcribe(buf)
     except Exception as e:
-        await msg.answer(f"Couldn't transcribe ({e}). file_id={msg.voice.file_id}")
+        await msg.answer(f"Couldn't transcribe: {e}")
         return
 
     ctx = await _build_context(session)

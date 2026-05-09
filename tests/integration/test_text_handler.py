@@ -107,3 +107,25 @@ async def test_regex_fastpath_skips_llm(seeded):
             now=dt.datetime(2026, 5, 9), llm=llm,
         )
     llm.parse_transaction.assert_not_called()
+
+
+async def test_transfer_text_skips_fastpath_uses_llm(seeded):
+    llm = MagicMock(spec=OpenRouterClient)
+    llm.parse_transaction = AsyncMock(return_value=ParsedTransaction(
+        kind="transfer", amount=500, currency="USD", account="Cash",
+        transfer_to_account="Revolut AED",
+        occurred_at=dt.datetime(2026, 5, 9), confidence=0.9,
+    ))
+    msg = MagicMock()
+    msg.text = "500 USD transfer to Revolut"
+    msg.message_id = 1
+    msg.from_user.id = 1
+    msg.answer = AsyncMock()
+    with respx.mock:
+        respx.get("https://open.er-api.com/v6/latest/USD").mock(
+            return_value=httpx.Response(200, json={
+                "result": "success", "base_code": "USD", "rates": {"USD": 1.0},
+            }))
+        await handle_text(msg, seeded, http_client=httpx.AsyncClient(),
+                          now=dt.datetime(2026, 5, 9), llm=llm)
+    llm.parse_transaction.assert_called_once()
