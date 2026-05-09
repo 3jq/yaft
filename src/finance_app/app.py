@@ -8,14 +8,17 @@ import httpx
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import Command
 from fastapi import FastAPI
+from openai import AsyncOpenAI
 
 from finance_app.bot.auth import OwnerOnly
 from finance_app.bot.handlers.callbacks import handle_callback
 from finance_app.bot.handlers.commands import cmd_balance, cmd_help, cmd_list, cmd_start
 from finance_app.bot.handlers.text import handle_text
+from finance_app.bot.handlers.voice import handle_voice
 from finance_app.config import get_settings
 from finance_app.db.session import make_engine, make_sessionmaker
 from finance_app.logging_setup import configure_logging, log
+from finance_app.pipeline.openrouter import OpenRouterClient
 
 
 def make_app() -> FastAPI:
@@ -28,6 +31,12 @@ def make_app() -> FastAPI:
     dp = Dispatcher()
     owner = OwnerOnly(settings.owner_tg_id)
     http_client = httpx.AsyncClient(timeout=15.0)
+
+    sdk = AsyncOpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key=settings.openrouter_api_key or "missing",
+    )
+    llm = OpenRouterClient(sdk=sdk)
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -71,12 +80,17 @@ def make_app() -> FastAPI:
     @dp.message(owner, F.text)
     async def _text(msg):
         async with Session() as s:
-            await handle_text(msg, s, http_client=http_client)
+            await handle_text(msg, s, http_client=http_client, llm=llm)
+
+    @dp.message(owner, F.voice)
+    async def _voice(msg):
+        async with Session() as s:
+            await handle_voice(msg, s, bot=bot, llm=llm, http_client=http_client)
 
     @dp.callback_query(owner, F.data.startswith("tx:"))
     async def _cb(cb):
         async with Session() as s:
-            await handle_callback(cb, s)
+            await handle_callback(cb, s, llm=llm, http_client=http_client)
 
     return fastapi_app
 
