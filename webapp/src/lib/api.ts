@@ -160,6 +160,14 @@ export const api = {
     req<void>(`/accounts/${id}/archive`, { method: "POST" }),
   deleteAccount: (id: number) =>
     req<void>(`/accounts/${id}`, { method: "DELETE" }),
+  getAccountBalancesSeries: (days = 30) =>
+    req<{
+      accounts: {
+        account_id: number;
+        currency: string;
+        points: { date: string; value_minor: number }[];
+      }[];
+    }>(`/accounts/balances_series?days=${days}`),
 
   // categories
   listCategories: (includeArchived = false) =>

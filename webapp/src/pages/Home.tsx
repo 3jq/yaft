@@ -46,6 +46,7 @@ export default function Home() {
   const txQuery = useQuery({ queryKey: ["transactions"], queryFn: () => api.listTransactions(false) });
   const goalsQuery = useQuery({ queryKey: ["goal-progress"], queryFn: api.goalProgress });
   const nwSeries = useQuery({ queryKey: ["nw-series", 30], queryFn: () => api.getNetworthSeries(30) });
+  const acctSeries = useQuery({ queryKey: ["acct-series", 30], queryFn: () => api.getAccountBalancesSeries(30) });
   const forecastQuery = useQuery({ queryKey: ["forecast"], queryFn: api.getForecast });
 
   if (summary.isLoading || txQuery.isLoading) {
@@ -353,6 +354,31 @@ export default function Home() {
           {accounts.map((acct) => {
             const { whole, frac } = fmtBalanceWhole(acct.balance_minor, acct.currency);
             const currSym = sym(acct.currency);
+            const series =
+              acctSeries.data?.accounts.find((x) => x.account_id === acct.account_id)?.points ?? [];
+            const sparkPoints = (() => {
+              if (series.length < 2) return "";
+              const vals = series.map((p) => p.value_minor);
+              const min = Math.min(...vals);
+              const max = Math.max(...vals);
+              const range = max - min || 1;
+              const W = 80, H = 14, pad = 1;
+              return vals
+                .map((v, i) => {
+                  const x = (i / (vals.length - 1)) * W;
+                  const y = H - pad - ((v - min) / range) * (H - 2 * pad);
+                  return `${x.toFixed(1)},${y.toFixed(1)}`;
+                })
+                .join(" ");
+            })();
+            const deltaMinor =
+              series.length >= 2
+                ? series[series.length - 1].value_minor - series[0].value_minor
+                : 0;
+            const deltaSign = deltaMinor > 0 ? "+" : deltaMinor < 0 ? "−" : "";
+            const deltaAbs = formatAmount(Math.abs(deltaMinor), acct.currency).replace(/^[−-]/, "");
+            const deltaLabel =
+              deltaMinor === 0 ? "flat / 30d" : `${deltaSign}${deltaAbs} / 30d`;
             return (
               <button
                 key={acct.account_id}
@@ -379,19 +405,21 @@ export default function Home() {
                     {frac ? `.${frac}` : acct.currency !== "JPY" && acct.currency !== "KRW" ? "" : ""}
                   </span>
                 </div>
-                {/* Placeholder sparkline — TODO: Phase 4 real sparkline data */}
                 <div className="mt-1" style={{ outline: "none" }}>
                   <svg width="100%" height="14" viewBox="0 0 80 14" preserveAspectRatio="none">
-                    <polyline
-                      points="0,9 10,8 20,7 30,8 40,5 50,7 60,5 70,4 80,3"
-                      fill="none"
-                      stroke="#0a0a0a"
-                      strokeWidth="1.2"
-                    />
+                    {sparkPoints ? (
+                      <polyline
+                        points={sparkPoints}
+                        fill="none"
+                        stroke="#0a0a0a"
+                        strokeWidth="1.2"
+                      />
+                    ) : (
+                      <line x1="0" y1="7" x2="80" y2="7" stroke="#e5e5e5" strokeWidth="1" />
+                    )}
                   </svg>
                 </div>
-                {/* TODO: Phase 4 — real 30-day delta */}
-                <div className="num text-[10px] text-neutral-500">+$0 / 30d</div>
+                <div className="num text-[10px] text-neutral-500">{deltaLabel}</div>
               </button>
             );
           })}

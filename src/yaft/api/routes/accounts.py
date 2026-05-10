@@ -12,6 +12,73 @@ from yaft.db.models import Account, Goal, Transaction
 router = APIRouter(prefix="/api/accounts", tags=["accounts"])
 
 
+@router.get("/balances_series")
+async def balances_series(
+    days: int = 30,
+    session: AsyncSession = Depends(_session),  # noqa: B008
+    _u=Depends(require_owner),  # noqa: B008
+):
+    """Per-account end-of-day balance points (in the account's own currency)
+    for the last N days. Used by the Home page per-account sparklines."""
+    import datetime as dt
+
+    today = dt.date.today()
+    days = max(2, min(days, 365))
+    start_day = today - dt.timedelta(days=days - 1)
+
+    accs = (
+        await session.execute(select(Account).where(Account.archived == 0))
+    ).scalars().all()
+
+    out = []
+    for a in accs:
+        rows = (
+            await session.execute(
+                select(Transaction)
+                .where(
+                    Transaction.account_id == a.id,
+                    Transaction.deleted_at.is_(None),
+                )
+                .order_by(Transaction.occurred_at)
+            )
+        ).scalars().all()
+
+        end_of_day: dict[dt.date, int] = {}
+        running = a.opening_balance_minor
+        for t in rows:
+            if t.kind in ("income", "transfer_in"):
+                running += t.amount_minor
+            elif t.kind in ("expense", "transfer_out"):
+                running -= t.amount_minor
+            end_of_day[t.occurred_at.date()] = running
+
+        sorted_days = sorted(end_of_day.keys())
+        cur = a.opening_balance_minor
+        j = 0
+        for d in sorted_days:
+            if d < start_day:
+                cur = end_of_day[d]
+                j += 1
+            else:
+                break
+
+        points = []
+        for i in range(days):
+            d = start_day + dt.timedelta(days=i)
+            while j < len(sorted_days) and sorted_days[j] <= d:
+                cur = end_of_day[sorted_days[j]]
+                j += 1
+            points.append({"date": d.isoformat(), "value_minor": cur})
+
+        out.append({
+            "account_id": a.id,
+            "currency": a.currency,
+            "points": points,
+        })
+
+    return {"accounts": out}
+
+
 @router.get("", response_model=list[AccountOut])
 async def list_accounts(
     include_archived: bool = False,
