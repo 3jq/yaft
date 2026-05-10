@@ -1,10 +1,15 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeft, Plus } from "lucide-react";
+import { ChevronLeft, Plus, Trash2 } from "lucide-react";
 import { api, Account } from "@/lib/api";
 import { formatAmount, formatBase, toMinor } from "@/lib/money";
 import { Hr } from "@/components/Section";
+
+type BalanceInfo = {
+  current_minor: number;
+  prev_30d_minor: number;
+};
 
 // ── Button style constants ────────────────────────────────────────────────────
 
@@ -35,38 +40,40 @@ function FieldRow({
   );
 }
 
-// ── 30-day delta placeholder (cycles) ────────────────────────────────────────
-
-const DELTA_CYCLE = ["+$120 / 30d", "−$50 / 30d", "flat / 30d"];
-function deltaFor(idx: number) {
-  return DELTA_CYCLE[idx % DELTA_CYCLE.length];
-}
-
 // ── Account row ───────────────────────────────────────────────────────────────
 
 function AccountRow({
   account,
-  totalBalanceMinor,
-  idx,
+  balance,
+  totalAbsBalanceMinor,
+  onDelete,
+  deleting,
 }: {
   account: Account;
-  totalBalanceMinor: number;
-  idx: number;
+  balance: BalanceInfo | undefined;
+  totalAbsBalanceMinor: number;
+  onDelete: () => void;
+  deleting: boolean;
 }) {
-  const nav = useNavigate();
-  const balMinor = account.opening_balance_minor;
+  const balMinor = balance?.current_minor ?? account.opening_balance_minor;
+  const prevMinor = balance?.prev_30d_minor ?? account.opening_balance_minor;
+  const deltaMinor = balMinor - prevMinor;
   const shareRaw =
-    totalBalanceMinor > 0 ? balMinor / totalBalanceMinor : 0;
+    totalAbsBalanceMinor > 0 ? Math.abs(balMinor) / totalAbsBalanceMinor : 0;
   const sharePct = Math.max(0, Math.min(1, shareRaw));
   const pctLabel = `${Math.round(sharePct * 100)}% of net`;
   const formattedBal = formatAmount(balMinor, account.currency);
-  const delta = deltaFor(idx);
+
+  let deltaLabel: string;
+  if (deltaMinor === 0) {
+    deltaLabel = "flat / 30d";
+  } else {
+    const sign = deltaMinor > 0 ? "+" : "−";
+    deltaLabel = `${sign}${formatAmount(Math.abs(deltaMinor), account.currency).replace(/^[−-]/, "")} / 30d`;
+  }
 
   return (
-    <button
-      onClick={() => nav(`/accounts/${account.id}`)}
-      className="w-full text-left px-5 py-3 hover:bg-neutral-50 transition-colors"
-    >
+    <div className="w-full px-5 py-3 hover:bg-neutral-50 transition-colors">
       {/* Top row */}
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
@@ -77,9 +84,19 @@ function AccountRow({
             {account.kind} · {account.currency}
           </div>
         </div>
-        <div className="text-right shrink-0">
-          <div className="num text-[13px] font-medium">{formattedBal}</div>
-          <div className="num text-[10.5px] text-neutral-400 mt-0.5">{delta}</div>
+        <div className="flex items-start gap-2 shrink-0">
+          <div className="text-right">
+            <div className="num text-[13px] font-medium">{formattedBal}</div>
+            <div className="num text-[10.5px] text-neutral-400 mt-0.5">{deltaLabel}</div>
+          </div>
+          <button
+            onClick={onDelete}
+            disabled={deleting}
+            aria-label="Delete account"
+            className="w-7 h-7 -mr-1 grid place-items-center text-neutral-400 hover:text-red-500 disabled:opacity-50"
+          >
+            <Trash2 size={14} strokeWidth={1.75} />
+          </button>
         </div>
       </div>
 
@@ -91,14 +108,14 @@ function AccountRow({
         />
       </div>
       <div className="num text-[10px] text-neutral-400 mt-1">{pctLabel}</div>
-    </button>
+    </div>
   );
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
 
 const CURRENCIES = ["USD", "EUR", "AED", "RUB", "GBP"];
-const KINDS = ["cash", "bank", "card", "savings", "business", "other"];
+const KINDS = ["cash", "bank", "card", "savings", "crypto", "business", "other"];
 
 export default function Accounts() {
   const nav = useNavigate();
@@ -125,20 +142,35 @@ export default function Accounts() {
     staleTime: 300_000,
   });
 
+  const summaryQuery = useQuery({
+    queryKey: ["summary"],
+    queryFn: api.getSummary,
+    staleTime: 30_000,
+  });
+
   const accounts: Account[] = accsQuery.data ?? [];
   const archivedAccounts: Account[] = archivedQuery.data ?? [];
   const base = settingsQuery.data?.base_currency ?? "USD";
+
+  // ── Live balances from summary ───────────────────────────────────────────────
+
+  const balanceById = new Map<number, BalanceInfo>();
+  for (const b of summaryQuery.data?.account_balances ?? []) {
+    balanceById.set(b.account_id, {
+      current_minor: b.balance_minor,
+      prev_30d_minor: b.balance_30d_ago_minor,
+    });
+  }
+  const liveBalance = (a: Account): number =>
+    balanceById.get(a.id)?.current_minor ?? a.opening_balance_minor;
 
   // ── Net assets calc ───────────────────────────────────────────────────────────
 
   const baseAccounts = accounts.filter((a) => a.currency === base);
   const nonBaseAccounts = accounts.filter((a) => a.currency !== base);
-  const netMinor = baseAccounts.reduce(
-    (sum, a) => sum + a.opening_balance_minor,
-    0
-  );
-  const totalAllBalancesMinor = accounts.reduce(
-    (sum, a) => sum + a.opening_balance_minor,
+  const netMinor = baseAccounts.reduce((sum, a) => sum + liveBalance(a), 0);
+  const totalAbsBalanceMinor = accounts.reduce(
+    (sum, a) => sum + Math.abs(liveBalance(a)),
     0
   );
 
@@ -162,12 +194,37 @@ export default function Accounts() {
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["accs"] });
+      qc.invalidateQueries({ queryKey: ["summary"] });
       setName("");
       setKind("cash");
       setCurrency("USD");
       setOpeningStr("0");
     },
   });
+
+  const deleteMut = useMutation({
+    mutationFn: (id: number) => api.deleteAccount(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["accs"] });
+      qc.invalidateQueries({ queryKey: ["summary"] });
+    },
+  });
+
+  const handleDelete = (a: Account) => {
+    if (!confirm(`Delete account "${a.name}"? This cannot be undone.`)) return;
+    deleteMut.mutate(a.id, {
+      onError: (err) => {
+        const msg = (err as Error).message;
+        if (msg.includes("409")) {
+          alert(
+            `Can't delete "${a.name}" — it has transactions or is linked to a goal. Archive it instead.`
+          );
+        } else {
+          alert(`Delete failed: ${msg}`);
+        }
+      },
+    });
+  };
 
   // ── Render ───────────────────────────────────────────────────────────────────
 
@@ -230,12 +287,14 @@ export default function Accounts() {
         </div>
       ) : (
         <div className="divide-y divide-[#f0f0f1]">
-          {accounts.map((a, idx) => (
+          {accounts.map((a) => (
             <AccountRow
               key={a.id}
               account={a}
-              totalBalanceMinor={totalAllBalancesMinor}
-              idx={idx}
+              balance={balanceById.get(a.id)}
+              totalAbsBalanceMinor={totalAbsBalanceMinor}
+              onDelete={() => handleDelete(a)}
+              deleting={deleteMut.isPending && deleteMut.variables === a.id}
             />
           ))}
         </div>

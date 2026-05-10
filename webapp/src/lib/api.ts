@@ -59,7 +59,13 @@ export type Summary = {
   total_expense_minor: number;
   total_income_minor: number;
   by_category: { category_id: number | null; name: string; expense_minor: number }[];
-  account_balances: { account_id: number; name: string; balance_minor: number; currency: string }[];
+  account_balances: {
+    account_id: number;
+    name: string;
+    balance_minor: number;
+    balance_30d_ago_minor: number;
+    currency: string;
+  }[];
 };
 
 export type Settings = {
@@ -152,6 +158,8 @@ export const api = {
     req<Account>("/accounts", { method: "POST", body: JSON.stringify(b) }),
   archiveAccount: (id: number) =>
     req<void>(`/accounts/${id}/archive`, { method: "POST" }),
+  deleteAccount: (id: number) =>
+    req<void>(`/accounts/${id}`, { method: "DELETE" }),
 
   // categories
   listCategories: (includeArchived = false) =>

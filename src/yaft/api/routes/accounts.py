@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from yaft.api.auth import require_owner
 from yaft.api.routes.transactions import _session
 from yaft.api.schemas import AccountIn, AccountOut
-from yaft.db.models import Account
+from yaft.db.models import Account, Goal, Transaction
 
 router = APIRouter(prefix="/api/accounts", tags=["accounts"])
 
@@ -76,5 +76,36 @@ async def archive_account(
     if not a:
         raise HTTPException(404, "not found")
     a.archived = 1
+    await session.commit()
+    return Response(status_code=204)
+
+
+@router.delete("/{aid}", status_code=204)
+async def delete_account(
+    aid: int,
+    session: AsyncSession = Depends(_session),  # noqa: B008
+    _u=Depends(require_owner),  # noqa: B008
+):
+    a = await session.get(Account, aid)
+    if not a:
+        raise HTTPException(404, "not found")
+
+    tx_count = (
+        await session.execute(
+            select(Transaction).where(Transaction.account_id == aid).limit(1)
+        )
+    ).first()
+    if tx_count is not None:
+        raise HTTPException(
+            409, "account has transactions; archive instead of deleting"
+        )
+
+    goal_ref = (
+        await session.execute(select(Goal).where(Goal.account_id == aid).limit(1))
+    ).first()
+    if goal_ref is not None:
+        raise HTTPException(409, "account is linked to a goal")
+
+    await session.delete(a)
     await session.commit()
     return Response(status_code=204)

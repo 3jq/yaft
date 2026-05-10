@@ -58,6 +58,7 @@ async def get_summary(
     accs = (
         await session.execute(select(Account).where(Account.archived == 0))
     ).scalars().all()
+    cutoff_30d = dt.datetime.combine(today - dt.timedelta(days=30), dt.time.min)
     balances = []
     for a in accs:
         all_rows = (
@@ -69,15 +70,21 @@ async def get_summary(
             )
         ).scalars().all()
         bal = a.opening_balance_minor
+        bal_30d_ago = a.opening_balance_minor
         for t in all_rows:
+            delta = 0
             if t.kind in ("expense", "transfer_out"):
-                bal -= t.amount_minor
+                delta = -t.amount_minor
             elif t.kind in ("income", "transfer_in"):
-                bal += t.amount_minor
+                delta = t.amount_minor
+            bal += delta
+            if t.occurred_at < cutoff_30d:
+                bal_30d_ago += delta
         balances.append({
             "account_id": a.id,
             "name": a.name,
             "balance_minor": bal,
+            "balance_30d_ago_minor": bal_30d_ago,
             "currency": a.currency,
         })
 
