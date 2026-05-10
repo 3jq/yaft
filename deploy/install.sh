@@ -33,9 +33,12 @@ sudo -u "$USER_" "$APP_DIR/.venv/bin/pip" install -e "$APP_DIR"
     sudo -u "$USER_" npm ci && \
     sudo -u "$USER_" npm run build )
 
-# Migrations
-sudo -u "$USER_" "$APP_DIR/.venv/bin/alembic" \
-  -c "$APP_DIR/alembic.ini" upgrade head
+# Migrations — cd into APP_DIR so alembic's relative `script_location` and
+# `prepend_sys_path = .` resolve against the deployed copy, not whatever
+# directory the operator happened to be in when running this script.
+( cd "$APP_DIR" && \
+  sudo -u "$USER_" "$APP_DIR/.venv/bin/alembic" \
+    -c "$APP_DIR/alembic.ini" upgrade head )
 
 # Service
 sudo install -m 0644 \
