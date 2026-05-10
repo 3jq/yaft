@@ -209,6 +209,11 @@ def make_app() -> FastAPI:
     async def healthz():
         return {"ok": True}
 
+    @fastapi_app.get("/")
+    async def root():
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(url="/app/", status_code=307)
+
     @dp.message(owner, Command("start"))
     async def _start(msg):
         await cmd_start(msg)
