@@ -13,10 +13,12 @@ id -u "$USER_" >/dev/null 2>&1 || \
 
 sudo install -d -o "$USER_" -g "$USER_" "$APP_DIR" "$DATA_DIR" "$BACKUP_DIR"
 
-sudo rsync -a \
+sudo rsync -a --delete \
   --exclude '.venv' \
   --exclude '__pycache__' \
   --exclude 'webapp/node_modules' \
+  --exclude '/finance.db' \
+  --exclude '/yaft.db' \
   --exclude '.git' \
   ./ "$APP_DIR"/
 
