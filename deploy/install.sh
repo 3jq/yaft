@@ -45,6 +45,7 @@ sudo install -m 0644 \
   "$APP_DIR/deploy/yaft.service" \
   /etc/systemd/system/yaft.service
 sudo systemctl daemon-reload
-sudo systemctl enable --now yaft
+sudo systemctl enable yaft
+sudo systemctl restart yaft
 
 echo "Done. Tail logs with: journalctl -u yaft -f"
