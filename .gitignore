@@ -9,8 +9,8 @@ __pycache__/
 *.db-wal
 *.db-shm
 .env
-dist/
 build/
+!webapp/dist/
 *.egg-info/
 node_modules/
 # webapp/dist/ is committed so deploys don't need Node on the VPS

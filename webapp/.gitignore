@@ -1,5 +1,5 @@
 node_modules/
-dist/
+# dist/ is committed so the VPS deploy doesn't need Node
 *.tsbuildinfo
 # tsc -b emits .js alongside .tsx; vite handles transpilation, these are artifacts
 src/**/*.js
