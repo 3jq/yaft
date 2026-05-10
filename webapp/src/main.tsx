@@ -19,7 +19,7 @@ const qc = new QueryClient({
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <QueryClientProvider client={qc}>
-      <BrowserRouter basename="/app">
+      <BrowserRouter basename={window.location.pathname.startsWith("/app") ? "/app" : "/"}>
         <App />
       </BrowserRouter>
     </QueryClientProvider>

@@ -38,12 +38,22 @@ if [ ! -d "$APP_DIR/webapp/dist" ]; then
   exit 1
 fi
 
-# Migrations — cd into APP_DIR so alembic's relative `script_location` and
-# `prepend_sys_path = .` resolve against the deployed copy, not whatever
-# directory the operator happened to be in when running this script.
-( cd "$APP_DIR" && \
-  sudo -u "$USER_" "$APP_DIR/.venv/bin/alembic" \
-    -c "$APP_DIR/alembic.ini" upgrade head )
+# Migrations — load the runtime env file (so DB_URL matches what the systemd
+# unit will use) and cd into APP_DIR so alembic's relative `script_location`
+# resolves correctly. Skip cleanly if the env file isn't there yet (first
+# install — the operator hasn't created /etc/yaft.env yet; alembic will run
+# automatically on next install after they create it).
+ENV_FILE=/etc/yaft.env
+if [ -r "$ENV_FILE" ]; then
+  ( cd "$APP_DIR" && \
+    sudo -E -u "$USER_" \
+      env $(sudo grep -E '^[A-Z_]+=' "$ENV_FILE" | xargs -d '\n') \
+      "$APP_DIR/.venv/bin/alembic" \
+        -c "$APP_DIR/alembic.ini" upgrade head )
+else
+  echo "NOTE: $ENV_FILE not present yet — skipping alembic. Create the env" >&2
+  echo "      file, then re-run: sudo bash deploy/install.sh" >&2
+fi
 
 # Service
 sudo install -m 0644 \

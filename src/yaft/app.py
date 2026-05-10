@@ -105,7 +105,7 @@ def make_app() -> FastAPI:
                 await bot.set_chat_menu_button(
                     menu_button=MenuButtonWebApp(
                         text="Dashboard",
-                        web_app=WebAppInfo(url=settings.public_https_url + "/app/"),
+                        web_app=WebAppInfo(url=settings.public_https_url + "/"),
                     )
                 )
             except Exception as e:
@@ -208,29 +208,32 @@ def make_app() -> FastAPI:
             async def dispatch(self, request, call_next):
                 response = await call_next(request)
                 p = request.url.path
-                if p.startswith("/app/assets/"):
+                if p.startswith("/assets/") or p.startswith("/app/assets/"):
                     response.headers["Cache-Control"] = (
                         "public, max-age=31536000, immutable"
                     )
-                elif p == "/app/" or p.endswith("/app/index.html"):
+                elif p in ("/", "/app/", "/index.html", "/app/index.html"):
                     response.headers["Cache-Control"] = "no-cache"
                 return response
 
         fastapi_app.add_middleware(_StaticCacheHeaders)
+        # Mount the SPA at /app for the long-standing path AND at / so Telegram
+        # WebViews opening the bare host see content immediately (no redirect
+        # that could drop the initData fragment in some clients).
         fastapi_app.mount(
             "/app",
             StaticFiles(directory=WEBAPP_DIR, html=True),
             name="webapp",
         )
+        fastapi_app.mount(
+            "/",
+            StaticFiles(directory=WEBAPP_DIR, html=True),
+            name="webapp_root",
+        )
 
     @fastapi_app.get("/healthz")
     async def healthz():
         return {"ok": True}
-
-    @fastapi_app.get("/")
-    async def root():
-        from fastapi.responses import RedirectResponse
-        return RedirectResponse(url="/app/", status_code=307)
 
     @dp.message(owner, Command("start"))
     async def _start(msg):
