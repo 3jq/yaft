@@ -10,6 +10,7 @@ from urllib.parse import parse_qsl
 from fastapi import Header, HTTPException, Request
 
 from yaft.config import get_settings
+from yaft.logging_setup import log
 
 
 class InitDataError(ValueError):
@@ -52,7 +53,19 @@ async def require_owner(
     try:
         info = verify_init_data(x_telegram_init_data, bot_token=settings.bot_token)
     except InitDataError as e:
+        log.warning(
+            "auth.failed",
+            reason=str(e),
+            init_data_present=bool(x_telegram_init_data),
+            init_data_len=len(x_telegram_init_data),
+            init_data_prefix=x_telegram_init_data[:60] if x_telegram_init_data else "",
+        )
         raise HTTPException(status_code=401, detail=f"auth failed: {e}") from e
     if info.user_id != settings.owner_tg_id:
+        log.warning(
+            "auth.not_owner",
+            init_user_id=info.user_id,
+            expected=settings.owner_tg_id,
+        )
         raise HTTPException(status_code=403, detail="not owner")
     return info
