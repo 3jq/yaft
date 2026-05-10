@@ -199,6 +199,24 @@ def make_app() -> FastAPI:
         os.path.join(os.path.dirname(__file__), "..", "..", "webapp", "dist")
     )
     if os.path.isdir(WEBAPP_DIR):
+        # Vite emits hash-suffixed filenames (e.g. index-DZlX_d_O.js) under
+        # /assets/, so they're safe to cache for a year. index.html itself
+        # must NOT be cached, otherwise updates never reach Telegram WebViews.
+        from starlette.middleware.base import BaseHTTPMiddleware
+
+        class _StaticCacheHeaders(BaseHTTPMiddleware):
+            async def dispatch(self, request, call_next):
+                response = await call_next(request)
+                p = request.url.path
+                if p.startswith("/app/assets/"):
+                    response.headers["Cache-Control"] = (
+                        "public, max-age=31536000, immutable"
+                    )
+                elif p == "/app/" or p.endswith("/app/index.html"):
+                    response.headers["Cache-Control"] = "no-cache"
+                return response
+
+        fastapi_app.add_middleware(_StaticCacheHeaders)
         fastapi_app.mount(
             "/app",
             StaticFiles(directory=WEBAPP_DIR, html=True),

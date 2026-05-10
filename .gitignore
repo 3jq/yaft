@@ -13,6 +13,6 @@ dist/
 build/
 *.egg-info/
 node_modules/
-webapp/dist/
+# webapp/dist/ is committed so deploys don't need Node on the VPS
 .superpowers/
 docs/superpowers/

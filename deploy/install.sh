@@ -28,10 +28,13 @@ fi
 sudo -u "$USER_" "$APP_DIR/.venv/bin/pip" install --upgrade pip
 sudo -u "$USER_" "$APP_DIR/.venv/bin/pip" install -e "$APP_DIR"
 
-# WebApp build (assumes Node 20+ already installed).
-( cd "$APP_DIR/webapp" && \
-    sudo -u "$USER_" npm ci && \
-    sudo -u "$USER_" npm run build )
+# WebApp: prebuilt dist/ is shipped in the repo, so no `npm` step on the VPS.
+# (Build locally with `cd webapp && npm install && npm run build` before
+# committing — keeps the deploy host RAM-light, important on small VPS sizes.)
+if [ ! -d "$APP_DIR/webapp/dist" ]; then
+  echo "FATAL: webapp/dist/ missing — build the WebApp locally and commit it." >&2
+  exit 1
+fi
 
 # Migrations — cd into APP_DIR so alembic's relative `script_location` and
 # `prepend_sys_path = .` resolve against the deployed copy, not whatever

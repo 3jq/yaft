@@ -8,9 +8,9 @@ import "./index.css";
 const qc = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5_000,
+      staleTime: 30_000,
       refetchOnWindowFocus: true,
-      refetchInterval: 10_000,         // poll so bot-created tx appear without manual reload
+      refetchInterval: 60_000,         // bot-created tx still appear within ~1 min, but no constant trickle
       refetchIntervalInBackground: false,
     },
   },
